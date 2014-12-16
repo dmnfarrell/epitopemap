@@ -1,0 +1,37 @@
+{{=TITLE('Epitopemap compare')}}
+{{extend 'layout.html'}}
+
+<h3>Compare Proteins</h3>
+
+<table>
+<tr><td>
+<div id="mydiv">  </div>
+</td>
+<td>
+<h5>Protein 1</h5>
+{{=FORM(
+TABLE(
+TR(LABEL('id:',_for='genome'),
+INPUT(_name='label',_type='text',value="results_bovine",_style="width:150px;")),
+TR(LABEL('genome:',_for='genome'),
+INPUT(_name='genome',_type='text',value="MTB-H37Rv",_style="width:150px;")),
+TR(LABEL('locus tag:',_for='tag'),
+INPUT(_name='tag',_type='text',value="Rv0001",_style="width:150px;")),
+TR(LABEL('min alleles:',_for='n'),
+INPUT(_name='n',_type='text',value=3,_style="width:100px;")),
+TR(TD(),INPUT(_name='submit',_type='submit',_value='Plot')),_class="smalltable"),
+_id="form1")}}
+</td></tr>
+
+
+</table>
+
+<script>
+jQuery('#form1').submit(function() {
+  ajax('{{=URL('default', 'plots.load')}}', ['label','genome','tag','n'], 'mydiv');
+  return false;
+});
+</script>
+
+
+

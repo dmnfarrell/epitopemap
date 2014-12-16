@@ -1,0 +1,24 @@
+{{extend 'layout.html'}}
+
+<body>
+<h4>Submit new binding prediction calculations.</h4>
+<p> The job will be processed in the background and when finished you can view in quick view.
+<p>
+Tips: The usual method is to select multiple predictors and alleles which are then run together.
+For an entire proteome using all methods, it could take
+24 hrs to process. Tepitope is fastest so if you want a quick result
+just pick this method. Usually selection of alleles should be tailored to your needs.
+<br>
+If the genome is not in the drop down list you should go to the
+{{=A('add genome', _href=URL(r=request,f='genomes'))}}
+page and add it to the database so that the application is aware of it's availability.
+<p>
+
+<div>
+{{=form}}
+<div id='jobdetails'>
+</div>
+
+</div>
+
+

@@ -1,0 +1,26 @@
+{{q=feat.qualifiers}}
+{{gene=''}}
+{{if 'gene' in q:}}
+{{gene=q['gene']}}
+{{pass}}
+
+<div style="width:100%;">
+<table class="mytable">
+<tr><th>Note:</th></tr>
+{{if q.has_key('note'):}}
+<tr><td>{{=q['note'][0]}}</td></tr>
+{{pass}}
+<tr><th>Sequence:</th></tr>
+{{fastafmt=fastafmt.split('\n')}}
+<tr><td class="monospace">
+{{for i in fastafmt:}}
+{{=i}}
+<br>
+{{pass}}
+</td></tr>
+</tr>
+<tr><th>Location:</th></tr>
+<tr><td>{{=feat.location}}</td></tr>
+</table>
+</div>
+

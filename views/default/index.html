@@ -1,0 +1,40 @@
+{{left_sidebar_enabled,right_sidebar_enabled=True,True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+
+{{if 'message' in globals():}}
+<h3>{{=message}}</h3>
+
+{{else:}}
+{{=BEAUTIFY(response._vars)}}
+{{pass}}
+
+{{actions = (('Quick view','quickview'),('Submit job','submit'),
+	      ('Add genome','genomes'), ('Genome analysis','analysis'),
+	      ('Epitope conservation','conservation'), ('Advanced search','search'),
+	      ('Admin','admin'), ('Citation','citation') ) }}
+
+{{for a in actions:}}
+<li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>
+{{pass}}
+
+{{end}}
+
+
+<h3>Quick search</h3>
+<small>Use if you already know the genome/tag</small>
+<table class='smalltable'><tr><td>
+{{=searchform}}
+</td></tr>
+</table>
+
+{{block right_sidebar}}
+
+<div>
+{{=IMG(_src=URL('static/images','front_image.png'),_width=500)}}
+</div>
+
+
+{{end}}
+

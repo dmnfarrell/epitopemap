@@ -1,0 +1,16 @@
+
+{{=TITLE('job submitted')}}
+{{extend 'layout.html'}}
+
+{{=H4('You have submitted a job successfully.')}}
+{{=H5('You can update the job status by refreshing this page.')}}
+{{=T('Job status is always accessible at ' )}}
+{{=A('this link', _href=URL('default','jobsubmitted',vars={'id':taskid}))}}
+{{st=status['scheduler_task']}}
+{{sr=status['scheduler_run']}}
+
+<div class='header'>
+{{=H5('task id: %s, status: %s' %(taskid, st['status']))}}
+{{=TABLE(*sr.items(),_class='smalltable')}}
+{{=st['vars']}}
+</div>

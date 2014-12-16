@@ -1,0 +1,12 @@
+{{extend 'layout.html'}}
+
+<div class="row">
+<div class="span9">
+{{actions = (
+	      ('Manage genomes','genomes'), ('Manage predictions','predictions')) }}
+
+{{for a in actions:}}
+<li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>
+{{pass}}
+
+</div>

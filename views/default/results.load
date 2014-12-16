@@ -1,0 +1,9 @@
+<script src="{{=URL('static','js/sorttable.js')}}"></script>
+<div class="span2 offset6">
+<div class="scrollingArea" style="width:100%">
+{{for m in data:}}
+{{=DIV(_class="floatleft")}}
+{{=H5(m)}}
+{{=XML(data[m].to_html(classes="sortable", index=False))}}
+{{pass}}
+</div></div>

@@ -1,0 +1,73 @@
+{{=TITLE(genome+' '+tag)}}
+{{extend 'layout.html'}}
+
+<div style="float: left">
+<h4>
+{{=A('previous', _href=URL('default','protein',args=[label,genome,previous]))}}
+{{=A('next', _href=URL('default','protein',args=[label,genome,next]))}}
+</h4>
+
+{{=(H4(tag))}}
+{{'''=H5(q['product'][0])'''}}
+
+</div>
+
+<div class="tabs">
+    <ul class="tab-links">
+        <li class="active"><a href="#plot">plot</a></li>
+        <li><a href="#sequence">sequence view</a></li>
+        <li><a href="#top binders">top binders</a></li>
+        <li><a href="#allresults">all results</a></li>
+        <li><a href="#feature">gene feature</a></li>
+        <li><a href="#links">links</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="plot" class="tab active">
+         {{=LOAD(c='default',f='plots.load',target='plotdiv',
+         vars={'label':label,'genome':genome,'tag':tag,'n':3})}}
+        </div>
+
+        <div id="binders" class="tab">
+        {{=LOAD(c='default',f='binders.load',target='bindersdiv',
+        vars={'label':label,'genome':genome,'tag':tag,'n':3})}}
+        </div>
+
+        <div id="allresults" class="tab">
+        {{=LOAD(c='default',f='results.load',target='allresultsdiv',
+        vars={'label':label,'genome':genome,'tag':tag,'n':3})}}
+        </div>
+
+        <div id="feature" class="tab">
+        {{=LOAD(c='default',f='feature.load',target='featurediv',
+        vars={'label':label,'genome':genome,'tag':tag})}}
+        </div>
+
+        <div id="sequence" class="tab">
+        {{=LOAD(c='default',f='sequence.load',target='sequencediv',
+        vars={'label':label,'genome':genome,'tag':tag,'n':3})}}
+        </div>
+
+        <div id="links" class="tab">
+        {{=LOAD(c='default',f='links.load',target='linksdiv',
+        vars={'label':label,'genome':genome,'tag':tag})}}
+        </div>
+
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.tabs .tab-links a').on('click', function(e)  {
+        var currentAttrValue = $(this).attr('href');
+        // Show/Hide Tabs
+        $('.tabs ' + currentAttrValue).show().siblings().hide();
+        // Change/remove current tab to active
+        $(this).parent('li').addClass('active').siblings().removeClass('active');
+
+        e.preventDefault();
+    });
+});
+
+</script>
+

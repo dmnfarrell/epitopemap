@@ -1,0 +1,11 @@
+<div class="scrollingArea" style="width:100%">
+<div style="padding:4px;">
+{{=imgurl}}
+</div>
+{{for k in tables:}}
+<div>
+{{=H5(k,_class="divheader")}}
+{{=tables[k]}}
+</div>
+{{pass}}
+</div>

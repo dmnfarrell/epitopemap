@@ -1,0 +1,9 @@
+{{=H5('permanent links (can be used to share current results)')}}
+{{=url}}
+<br>
+{{=ploturl}}
+<br>
+{{=resultsurl}}
+<br>
+{{=downloadurl}}
+

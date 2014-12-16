@@ -1,0 +1,46 @@
+{{extend 'layout.html'}}
+<div class="row">
+
+<div class="span2">
+{{=form}}
+
+</div>
+<div class="span8 offset1">
+<i>Get an estimate of epitope conservation across othologous proteins. See help pages for explanation.</i>
+</div>
+
+<div id="resultdiv" class="span9 offset1">
+
+</div>
+
+<div id="plotdiv" class="span9 offset1">
+</div>
+
+</div>
+
+<script>
+jQuery('#myform').submit(function() {
+  $( ".span9" ).empty();
+  $("#resultdiv").html('<div class="ajax-loader"><img src=../static/images/ajax-loader.gif ></div>')
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'conservationanalysis.load')}}',
+    ['label','genome','tag','method','n','identity','entrezquery'], 'resultdiv');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  $('#myform.width').val(250);
+  ajax('{{=URL('default', 'plots.load')}}', ['label','genome','tag','n','width'], 'plotdiv');
+  return false;
+});
+</script>
+
+
+

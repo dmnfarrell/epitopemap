@@ -1,0 +1,35 @@
+{{=TITLE('Epitopemap quick view')}}
+{{extend 'layout.html'}}
+
+<div style="float: left">
+
+</div>
+
+<script language="javascript" src="http://www.biodalliance.org/release-0.11/dalliance-compiled.js"></script>
+<script language="javascript">
+  new Browser({
+    chr:          '22',
+    viewStart:    30000000,
+    viewEnd:      30030000,
+    cookieKey:    'cow',
+
+    coordSystem: {
+      speciesName: 'Cow',
+      auth: 'ensembly',
+      version: '77',
+    },
+
+    sources:     [{name:                 'Genome',
+                   uri:                  'http://www.ensembl.org/das/Bos_taurus.UMD3.1.reference',
+                   tier_type:            'sequence',
+                   provides_entrypoints: true},
+                  {name:                 'e! transcripts',
+                   uri:                  'http://rest.ensembl.org',
+                   tier_type:            'ensembl',
+                   species:              'cow',
+                   type:                 ['transcript', 'exon', 'cds']}
+                  ]
+  });
+</script>
+
+<div id="svgHolder"></div>

@@ -1,0 +1,140 @@
+{{=TITLE('Epitopemap quick view')}}
+{{extend 'layout.html'}}
+
+<div class="row">
+
+<div class="span2">
+{{=form}}
+    <div id="heading" class="heading">
+    </div>
+</div>
+
+<div class="span9 offset1 ">
+
+<div class="tabs">
+    <ul class="tab-links">
+        <li class="active"><a href="#plot">plot</a></li>
+        <li><a href="#sequence">sequence view</a></li>
+        <li><a href="#binders">top binders</a></li>
+        <li><a href="#allresults">all results</a></li>
+        <li><a href="#feature">gene feature</a></li>
+        <li><a href="#seqdepot">protein annotation</a></li>
+        <li><a href="#links">links</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="plot" class="tab active">
+            {{=LOAD(c='default',f='plots.load',target='plotdiv',
+            vars={'label':'dummy'})}}
+        </div>
+
+        <div id="sequence" class="tab">
+
+        </div>
+
+        <div id="binders" class="tab">
+
+        </div>
+
+        <div id="allresults" class="tab">
+
+        </div>
+
+        <div id="feature" class="tab">
+
+        </div>
+
+        <div id="seqdepot" class="tab">
+
+        </div>
+
+        <div id="links" class="tab">
+
+        </div>
+
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+jQuery('#myform').submit(function() {
+  $(".tab").empty();
+  $(".tab").html('<div class="ajax-loader"><img src=../static/images/ajax-loader.gif ></div>')
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'heading.load')}}', ['label','genome','tag'], 'heading');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'plots.load')}}', ['label','genome','tag','n','kind'], 'plot');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'sequence.load')}}', ['label','genome','tag','n'], 'sequence');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'binders.load')}}', ['label','genome','tag','n'], 'binders');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'results.load')}}', ['label','genome','tag','n'], 'allresults');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'feature.load')}}', ['label','genome','tag'], 'feature');
+  return false;
+});
+</script>
+
+<!--
+<script type="text/javascript">
+jQuery('#myform').submit(function() {
+  $('#loading').show();
+  ajax('{{=URL('default', 'seqdepot.load')}}', ['genome','tag'], 'seqdepot');
+  return false;
+  });
+</script> -->
+
+<script type="text/javascript">
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'links.load')}}', ['label','genome','tag'], 'links');
+  return false;
+  });
+</script>
+
+<script>
+$(document).ready(function() {
+    $('.tabs .tab-links a').on('click', function(e)  {
+        var currentAttrValue = $(this).attr('href');
+        // Show/Hide Tabs
+        $('.tabs ' + currentAttrValue).show().siblings().hide();
+        // Change/remove current tab to active
+        $(this).parent('li').addClass('active').siblings().removeClass('active');
+
+        e.preventDefault();
+    });
+});
+
+</script>
+

@@ -1,0 +1,1 @@
+{{=IMG(_src=URL('static/data',img))}}

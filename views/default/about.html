@@ -1,0 +1,32 @@
+{{extend 'layout.html'}}
+
+<div>
+<body>
+<h4>This is a web interface for viewing CD4+ T cell epitope predictions of entire proteomes.</h4>
+Certain pathogenic bacteria and protozoan parasites survive ingestion by macrophages and
+replicate inside the intracellular vesicles of the endosomal–lysosomal system. These bacteria
+and their toxic products can be broken down by digestive enzymes and their peptides delivered
+to be bound by MHC class II molecules. These molecules are then brought to the surface of the Antigen Presenting Cell (APC) and presented to T cell receptors along with the co-receptor molecule CD4. If the epitope is antigenic it may activate the T cells and elicit an immune response.
+By efficiently endocytosing specific antigen via their surface immunoglobulin and presenting
+the antigen-derived peptides on MHC class II molecules, B cells can activate CD4 T cells that
+will in turn serve as helper T cells for the production of antibodies against that antigen.<p>
+The generation of peptides from native proteins is commonly referred to as antigen processing.
+The antigen presentation pathway is fundamental to the cellular adaptive immune reponse.
+<p>
+<img src=../static/images/antigen_presentation.png width=600>
+<p>
+Accurate prediction of the peptides that will form antigenic epitopes is essential to
+rational vaccine design. Such prediction is largely done by estimating the binding affinity
+of the peptide to the MHC-II molecule. This is determined by the binding core region of the ligand.
+Peptide binding will often be allele restricted or promiscuous and bind to multiple alleles.
+Methods such as TEPITOPE and NetMHCIIpan rely on determining the polymorphic pockets of
+the MHC binding groove, almost entirely located on the beta-chain. The particular amino acids
+in the binding pockets determine the peptide specificity of that allele.
+
+
+<p>
+<img src=../static/images/mhcII_structure.png width=400>
+<img src=../static/images/mhcII_binding_pockets.png width=500>
+<p>
+</body>
+</div>

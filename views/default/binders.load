@@ -1,0 +1,17 @@
+
+<div class="scrollingArea" style="width:100%">
+{{for m in b:}}
+{{=DIV(_class="floatleft")}}
+{{=H5(m)}}
+{{=XML(b[m].to_html(classes="tinytable", index=False))}}
+{{pass}}
+{{pass}}
+
+{{if len(shared)>0:}}
+{{=DIV(_class="floatleft")}}
+{{=H5('shared binders n>=%s' %n)}}
+{{=XML(shared.to_html(classes="tinytable",index=False))}}
+{{pass}}
+{{pass}}
+
+</div>

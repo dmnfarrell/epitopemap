@@ -1,0 +1,13 @@
+{{=TITLE('results')}}
+{{extend 'layout.html'}}
+
+{{=H3('results from current epitope analysis')}}
+
+{{for f in results:}}
+{{=T(f)}}
+<div class='scrollableContainer'>
+<div class='scrollingArea'>
+{{=XML(results[f].to_html(classes='sortable'))}}
+</div>
+</div>
+{{pass}}

@@ -1,0 +1,18 @@
+{{=TITLE('Epitopemap search')}}
+{{extend 'layout.html'}}
+
+<h5>Advanced search</h5>
+{{=form}}
+
+
+{{=msg}}
+<br>
+<table class="mytable">
+{{for r in sorted(results):}}
+{{a=r['locus_tag']}}
+{{g=r['genome']}}
+<tr>
+<td>{{=A(a,_href=URL('default','protein',args=[id,g,a]),_target=a)}}</td>
+</tr>
+{{pass}}
+</table>

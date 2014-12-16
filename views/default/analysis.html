@@ -1,0 +1,31 @@
+{{extend 'layout.html'}}
+<div class="row">
+<h5>This page provides a global summary of the binding predictions over
+a whole genome. It may be helpful for selection of candidate proteins.</h5>
+
+<div class="span2">
+{{=form}}
+</div>
+
+<div id="resultdiv" class="span9 offset1">
+
+<div id="loadingdiv">
+</div>
+</div>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'ajaxloading.load')}}', [], 'loadingdiv');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'analysegenome.load')}}', ['label','genome','method'], 'resultdiv');
+  return false;
+});
+</script>
+
+
+</div>

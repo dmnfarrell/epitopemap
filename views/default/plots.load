@@ -1,0 +1,4 @@
+<div>
+{{=XML(figure)}}
+</div>
+<div style="clear:both"></div>

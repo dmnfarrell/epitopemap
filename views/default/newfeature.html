@@ -1,0 +1,58 @@
+{{=TITLE(title)}}
+{{extend 'layout.html'}}
+
+{{q2=rattfeature.qualifiers}}
+{{tblink='http://tuberculist.epfl.ch/quicksearch.php?gene+name=%s' %title}}
+
+<table>
+<td>
+<table>
+<tr>
+<td>{{=IMG(_src=URL('static/images',img1))}}</td>
+<tr><td>{{=IMG(_src=URL('static/images',img2))}}</td>
+<tr><td>{{=IMG(_src=URL('static/images',img3))}}</td>
+</tr>
+</table>
+</td>
+<td>
+{{=H3(status)}}
+{{note1=''}}
+{{if mbfeature != None:}}
+{{q1=mbfeature.qualifiers}}
+{{note1=q1['note'][0]}}
+{{mbtag = q1['locus_tag'][0]}}
+{{if status == 'new':}}
+{{}}
+{{else:}}
+{{=H3(A(mbtag,_href=URL('default','feature',args=[mbtag]),_target='t'))}}
+{{seq=mbfeature.qualifiers['translation'][0]}}
+{{='current location: %s, len: %s' %(mbfeature.location,len(seq))}}
+<br>
+{{='new location: %s' %rattfeature.location}}
+{{pass}}
+{{pass}}
+{{=H3(A('MTB: '+title,_href=tblink,target=title))}}
+
+</td>
+</table>
+
+<table class="mytable">
+{{if status != 'new':}}
+<tr><th>Current Mbovis:</th></tr>
+<tr><td>
+{{=note1}}
+{{pass}}
+</td></tr>
+<tr><th>TB:</th></tr>
+<tr><td>
+{{=q2['note'][0]}}
+</td></tr>
+<tr><th>Aligned:</th></tr>
+<tr><td class="monospace">
+{{for i in aligned:}}
+{{=i}}
+<br>
+{{pass}}
+</td></tr>
+
+</table>

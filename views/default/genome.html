@@ -1,0 +1,16 @@
+{{=TITLE(genome)}}
+{{extend 'layout.html'}}
+
+{{=url}}
+
+<!-
+{{=H5(record.name)}}
+{{=H5(record.description)}}
+{{=H5(record.dbxrefs[0])}}
+{{=H4('feature summary: '+ genome)}}
+{{=TABLE(*summary.items(),_class='smalltable')}}
+{{=LOAD('{{=URL('default', 'plotgenome.load')}}', ['label','genome'])}}
+
+{{=TABLE(*record.annotations.items(),_class='smalltable')}} -->
+
+

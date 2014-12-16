@@ -1,0 +1,211 @@
+{{extend 'layout.html'}}
+
+<div class="row">
+<div class="span2">
+
+<h4>Table of Contents</h4>
+<li><a href="#Submitting">Submitting predictions</a></li>
+<li><a href="#Viewing">Viewing predictions</a></li>
+<li><a href="#Genomewide">Genome wide analysis</a></li>
+<li><a href="#Conservation">Eptiope conservation</a></li>
+<li><a href="#Webapp">Web Application</a></li>
+<li><a href="#References">References</a></li>
+
+</div>
+
+<h4>This is a web interface for visualising T cell epitope binding predictions of
+entire proteomes.
+</h4>
+
+<div class="span9 offset0">
+
+<a name="Submitting"></a>
+<h3>Submitting predictions</h3>
+<p>
+Jobs can be run on the command line or executed via the web interface.
+
+<h5>Web interface</h5>
+<p>
+
+This application is designed to allow binding predictions to be run for multiple proteins, such as
+a whole bacterial genome. The time taken depends on the number of alleles, number of proteins and
+the prediction method. Tepitope is fastest and will take less than 15 minutes to do a genome with
+~4000 proteins for each allele. NetMHCIIpan will be noticeably slower.
+<p>
+Jobs are queued and run in the background using the web2py scheduler system and are run consecutively. However it is possible
+to create multiple workers when web2py is started and thus multiple queues. You could do this if
+you are using a computer with multiple processors and want to make better use of them.
+
+<h5>Methods</h5>
+The current prediction methods available are:
+<li>
+{{=A('TEPITOPEPan', _href='http://www.biokdd.fudan.edu.cn/Service/TEPITOPEpan/TEPITOPEpan.html')}}
+</li>
+<li>
+{{=A('NetMHCIIpan', _href='http://www.cbs.dtu.dk/services/NetMHCIIpan/')}}
+</li>
+<li>{{=A('IEDB tools', _href='http://tools.immuneepitope.org/main/html/tcell_tools.html')}}</li>
+</li>
+<li>Threading</li>
+
+<h5>Selection of alleles</h3>
+
+<h4>Adding previously calculated predictions</h4>
+<p>
+Jobs sumitted via the web app are automatically added to a database recording the name of
+the folder and which genome they are associated with. Users don't need to know further
+details of file locations etc. However if needed, results from previous calculations can be added to the database manually. This simple requires the
+location of the folder on the local file system. Results should be kept in one
+directory per genome with a folder for each prediction method. Results are stored in one
+file per protein.
+
+<div class="monospace">
+/home/user/data/myresults/Mbovis/tepitope/Mb0012.mpk
+</div>
+<br>
+This example is for tepitope prediction data for the protein Mb0012 in Mbovis. (The file extension
+.mpk indicates a {{=A('MessagePack', _href='http://msgpack.org')}} file, which is a
+binary format for efficient storage):
+
+<a name="Viewing"></a>
+<h3>Viewing predictions</h3>
+<p>
+Every set of predictions for a genome (or maybe just a group of protein sequences) has an identifier
+ associated with it. This is simply a string identifying a set of binding predictions run with the
+ same parameters, e.g. a specific set of alleles. This 'prediction id' appears in the URI of the
+ protein display page, for example:
+
+<div class="monospace">
+http://localhost/epitopemap/default/protein/results_bovine/Mbovis/Mb0012
+</div>
+<br>
+The protein URIs are structured so that they can be entered in the address bar if required.
+However the easiest way to find and view predictions for a known protein name is via the <b>quickview</b>
+page which has form for entering the protein details and a few other options.
+
+<h5>Searching for a protein</h5>
+
+<h5>Binding prediction plots</h5>
+<p>
+Predictors will usually make multiple scoring predictions for each allele for an n-mer set of binders.
+ This information can be hard to display in a single plot. The purpose of the plot is to allow
+the user to quickly visualise where epitopes might be along the sequence and compare all alleles and
+ different methods in one plot. The default representation is a set of tracks with bars
+ representing predicted binders for each allele ordered by position on the sequence
+ as shown below. Plots can be zoomed in and out and panned left right.
+<p>
+<img src=../static/images/help_plots.png width=900>
+
+<h5>Cut-offs for binders</h5>
+
+
+<a name="Genomewide"></a>
+<h3>Genome wide analysis</h3>
+<p>
+
+<a name="Conservation"></a>
+<h3>Epitope conservation analysis</h3>
+<p>
+This interface allows you to get an estimate of how well conserved a predicted epitope is across a
+given set of sequences at a certain identity level. Orthologs for the sequence are first retrieved
+using an online blast. This can take up to several minutes but results are saved for later use.
+Once the alignments are returned the conservation of each epitope can be calculated. This is
+defined as the percentage of sequences where the epitope is present out of the total aligned. The
+set of sequences can be chosen based on a desired identity cutoff or taxon specification. For
+example, the sequences may constitute all orthologs within a bacterial species or just a set of
+strains.
+
+<h5>BLAST options</h5>
+Our method uses the NCBI online Blast service to retrieve orthologous matches. By default
+all matches are retrieved with an expect value lower than 10 and the sequences can then be
+filtered by percentage identity. It may be preferable or necessary to refine blast queries
+to narrow down the sequence set to a specific taxon or species.
+<p>
+This can be done using the entrez query text box (empty by default). This restricts the
+search to a subset of entries from the nr protein database fitting the requirement
+of the Entrez query.
+For example, to restrict the results to Actinobacteria we would use: <i>txid201174[ORGN]</i>.
+
+See {{=A('this page',_href='http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#entrez_query')}}
+for more information.
+
+<p>
+The following field names may be useful:
+<div class="monospace">
+{{x=['ALL, All Fields, All terms from all searchable fields',
+ 'UID, UID, Unique number assigned to each sequence',
+ 'FILT, Filter, Limits the records',
+ 'WORD, Text Word, Free text associated with record',
+ 'TITL, Title, Words in definition line',
+ 'KYWD, Keyword, Nonstandardized terms provided by submitter',
+ 'AUTH, Author, Author(s) of publication',
+ 'JOUR, Journal, Journal abbreviation of publication',
+ 'VOL, Volume, Volume number of publication',
+ 'ORGN, Organism, Scientific and common names of organism, and all higher levels of taxonomy',
+ 'ACCN, Accession, Accession number of sequence',
+ 'PACC, Primary Accession, Does not include retired secondary accessions',
+ 'GENE, Gene Name, Name of gene associated with sequence',
+ 'PROT, Protein Name, Name of protein associated with sequence',
+ 'ECNO, EC/RN Number, EC number for enzyme or CAS registry number',
+ 'PDAT, Publication Date, Date sequence added to GenBank',
+ 'MDAT, Modification Date, Date of last update',
+ 'SUBS, Substance Name, CAS chemical name or MEDLINE Substance Name',
+ 'PROP, Properties, Classification by source qualifiers and molecule type',
+ 'SQID, SeqID String, String identifier for sequence',
+ 'GPRJ, Genome Project, Genome Project',
+ 'SLEN, Sequence Length, Length of sequence',
+ 'FKEY, Feature key, Feature annotated on sequence',
+ 'ORGL, Organelle, Organelle']}}
+{{for i in x:}}
+{{=LI(i)}}
+{{pass}}
+</div>
+
+<a name="Webapp"></a>
+<h3>The Web Application</h3>
+
+<h4>Administration</h4>
+
+<h5>Add/remove genomes</h5>
+
+
+<h5>Add/remove predictions</h5>
+Results folders are added to the database whenever a set of predictions is submitted
+via the web interface. Therefore this menu is normally used to delete old predictions.
+However you can also manually add predictions so that they appear in the drop down menus.
+Results added should exist on the filesystem.
+
+<h4>Starting the server</h4>
+<div class="monospace">
+sudo python web2py.py -i localhost -a 123 -p 80 -K epitopemap -X
+</div>
+
+<a name="References"></a>
+
+<h3>References</h3>
+The following papers were important in the development of this application and
+provide some background to the field:
+
+<li>
+{{=T('''The utility and limitations of current web-available algorithms to predict
+peptides recognized by CD4 T cells in response to pathogen infection.
+Chaves et al. J Immunol. May 1, 2012; 188(9): 4235–4248.''')}}
+{{=A('link',_href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3331894')}}
+</li>
+
+<li>
+{{=T('''Predictions versus high-throughput experiments in T-cell epitope discovery:
+competition or synergy? Expert Review Vaccines, 11(1), 43–54. Lundegaard et al. 2012.''')}}
+{{=A('link',_href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3297080')}}
+</li>
+
+<li>
+{{=T('''Development of an epitope conservancy analysis tool to facilitate the design
+ of epitope-based diagnostics and vaccines. BMC bioinformatics 8, 361 (2007). Bui et al. ''')}}
+{{=A('link',_href='http://www.biomedcentral.com/1471-2105/8/361')}}
+</li>
+
+</div>
+</div>
+
+

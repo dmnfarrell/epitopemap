@@ -1,0 +1,16 @@
+<script src="{{=URL('static','js/sorttable.js')}}"></script>
+{{if res is None:}}
+{{=T('No predictions found. You need to submit the job and wait for results.')}}
+{{else:}}
+<div class='divheader'>
+{{=T(summary)}}
+</div>
+<div class="scrollingArea" style="width:100%">
+{{=T('Click on header to sort table')}}
+{{=XML(res.to_html(classes='sortable',escape=False,index=False,
+float_format=lambda x: '%2.2f' % x))}}
+</div>
+
+{{=XML(plothtml)}}
+
+{{pass}}
