@@ -63,9 +63,13 @@ audio {width:200px}
     border-top:1px #DEDEDE solid;
 }
 .header {
-	/* background:<fill here for header image>; */
+    font-family: "Lucida Console", Monaco, monospace;
+    padding:15px;
 }
-
+.header h2 {
+    font-size:2.8em;
+    color: #583333;
+}
 
 fieldset {padding:16px; border-top:1px #DEDEDE solid}
 fieldset legend {text-transform:uppercase; font-weight:bold; padding:4px 16px 4px 16px; background:#f1f1f1}
