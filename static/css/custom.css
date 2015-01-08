@@ -209,12 +209,14 @@ div.monospace {
     padding: 6px;
 }
 .myform input {
-    padding: 4px;
+    width: 150px;
+    height: 28;
+}
+.myform select {
+    width: 150px;
 }
 .myform label {
     float: left;
-    width: 10em;
-    margin-right: 1em;
     text-align: right;
     padding: 6px;
 }

@@ -331,6 +331,7 @@ def plots():
     """Use as component to plot predictions for given request"""
 
     print 'plot request'
+    print request.vars
     label = request.vars.label
     #if we have no data
     if label == 'dummy':
@@ -617,7 +618,7 @@ def predictions():
     default_sort_order=[db.predictions.id]
     grid = SQLFORM.grid(query=query, orderby=default_sort_order,
                 create=True, deletable=True, maxtextlength=350,
-                paginate=35,details=True, csv=False, ondelete=myondelete,
+                paginate=20,details=True, csv=False, ondelete=myondelete,
                 editable=auth.has_membership('editor_group'))
 
     return dict(grid=grid)
@@ -747,23 +748,16 @@ def heading():
 
 def selectionForm(defaultid='results_bovine'):
 
-    defaultg = 'MTB-H37Rv'
-    predids = [p.identifier for p in db().select(db.predictions.ALL)]
-    opts1 = [OPTION(i,value=i) for i in predids]
-    genomes = [p.name for p in db().select(db.genomes.ALL)]
-    opts2 = [OPTION(i,value=i) for i in genomes]
-    form = FORM(TABLE(
-            TR(TD(LABEL('id:',_for='genome')),
-            TD(SELECT(*opts1,_name='label',
-                    value=defaultid, _style="width:150px;"))),
-            TR(TD(LABEL('genome:',_for='genome')),
-            TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:150px;"))),
-            TR(TD(LABEL('locus tag:',_for='tag')),
-            TD(INPUT(_name='tag',_type='text',value="Rv0001",_style="width:150px;"))),
-            TR(TD(LABEL('min alleles:',_for='n')),
-            TD(INPUT(_name='n',_type='text',value=3,_style="width:50px;"))),
-            TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Update'))),
-            _class="smalltable"), _id="myform", hidden=dict(width=950))
+    form = SQLFORM.factory(
+              Field('label',requires=IS_IN_DB(db, 'predictions.identifier',zero=None,
+                    multiple=False),default=1,label='id'),
+              Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
+                    multiple=False),default=1,label='genome'),
+              Field('tag', 'string', label='locus tag',default='Rv0011c'),
+              Field('n', 'string', label='min alleles',default=3),
+              submit_button="Update",
+              formstyle='table3cols',_id='myform',_class='myform')
+    form.element('input[name=n]')['_style'] = 'width:50px;'
     return form
 
 def quickview():
