@@ -751,11 +751,6 @@ def quickview():
     form = selectionForm()
     return dict(label=defaultid,form=form)
 
-def quickview1():
-    defaultid = 'results_bovine'
-    form = selectionForm()
-    return dict(label=defaultid,form=form)
-
 def show():
     """Quickview all results in one - faster"""
 
