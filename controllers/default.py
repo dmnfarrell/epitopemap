@@ -144,7 +144,7 @@ def plotAnnotations(plot,annotation):
         plot.text(x,y-1, text=text, angle=0)
     return
 
-def plotTracks(preds,tag,n=3,title=None,width=820,annotation=None,seq=None):
+def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
     """Plot epitopes as parallel tracks"""
 
     from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
@@ -160,9 +160,9 @@ def plotTracks(preds,tag,n=3,title=None,width=820,annotation=None,seq=None):
            background_fill="#FAFAFA")
 
     h=1
-    #if annotation != None:
-    #    plotAnnotations(plot,annotation)
-    #    h=4
+    if seqdepot != None:
+        plotAnnotations(plot,seqdepot)
+        h=4
 
     for m in preds:
         pred = preds[m]
@@ -316,20 +316,36 @@ def plots():
     kind = request.vars.kind
 
     preds = getPredictions(label,g,tag)
-    sd={"tmhmm":[[29,51],[66,88]],
-        'gene3d': [['3.40.50.300',
-           'P-loop containing nucleotide triphosphate hydrolases',
-          21, 229, 1.2e-100]]}
+    sd=None
     feature, fastafmt, previous, next = getFeature(g,tag)
     seq = feature.qualifiers['translation'][0]
-    '''if request.vars.annotation == 'on':
+    if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
         seq = feature.qualifiers['translation'][0]
         print seq
-        sd = getSeqDepot(seq)
-        annot = sd['t']'''
-    figure = plotTracks(preds,tag,n=n,width=width,annotation=annot,seq=seq)
+        sd = getSeqDepot(seq)['t']
+
+    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd)
     return dict(figure=figure,preds=preds)
+
+def scoredistplots(preds):
+    """Score distribution plots"""
+
+    plots=[]
+    for p in preds:
+        pred=preds[p]
+        key=pred.scorekey
+        data = pred.data[key]
+        hist, edges = np.histogram(data, density=True, bins=30)
+        p = figure(title=p,plot_height=250,tools='')
+        p.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],
+               fill_color="#036564", line_color="#033649")
+        p.xgrid.grid_line_color = None
+        p.ygrid.grid_line_color = None
+        plots.append(p)
+    plot = GridPlot(children=[plots],title='test')
+    js,html = embedPlot(plot)
+    return html
 
 def results():
     """Component to show predictions for all peptides for each predictor """
@@ -363,21 +379,6 @@ def binders():
     else:
         shared=''
     return dict(b=b,summary=summary,shared=shared,n=n)
-
-def links():
-    label = request.vars.label
-    g = request.vars.genome
-    tag = request.vars.tag
-    downloadurl = A('download raw results',
-                    _href=URL('default','download',args=[label,g,tag],extension=''))
-    url = A('link to this page', _href=URL('default','protein',args=[label,g,tag],extension=''))
-    ploturl = A('link to plot', _href=URL('default','plots.load',
-                vars={'label':label,'genome':g,'tag':tag,'n':3},extension=''))
-    resultsurl = A('link to results table', _href=URL('default','results.load',
-                vars={'label':label,'genome':g,'tag':tag},extension=''))
-    iedburl = A('get iedb prediction', _href=URL('default','iedb',args=[g,tag],extension=''))
-    return dict(url=url, downloadurl=downloadurl,iedburl=iedburl,
-                ploturl=ploturl,resultsurl=resultsurl)
 
 def showSequence(seq,preds):
     """Get html display of binders on sequences"""
@@ -737,11 +738,12 @@ def selectionForm(defaultid='results_bovine'):
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
               Field('perccutoff', 'string', label='perc. cutoff',default=.9),
-              Field('annotation', 'boolean', label='annotation',default=True),
+              Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
     form.element('input[name=n]')['_style'] = 'width:50px;'
     form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
+    form.element('input[name=tag]')['_style'] = 'width:130px;'
     return form
 
 def quickview():
@@ -760,13 +762,18 @@ def show():
     n = int(request.vars.n)
     kind = request.vars.kind
     width = 820
+    annot = request.vars.annotation
 
     if label == 'dummy':
         figure = plotEmpty()
     preds = getPredictions(label,g,tag)
     feat, fastafmt, previous, next = getFeature(g,tag)
     seq = feat.qualifiers['translation'][0]
-    figure = plotTracks(preds,tag,n=n,width=width)
+    sd=None
+    if request.vars.annotation == 'on':
+        sd = getSeqDepot(seq)['t']
+    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd)
+    #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)
     #get all results into tables
     data = {}
@@ -783,8 +790,9 @@ def show():
     else:
         shared=''
     seqtable = showSequence(seq,preds)
-    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,
-                b=b,summary=summary,shared=shared,n=n,seqtable=seqtable)
+    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots
+                b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,
+                genome=g,tag=tag,label=label)
 
 def analysis():
     """Genome wide analysis of epitope predictions"""

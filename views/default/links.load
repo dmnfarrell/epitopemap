@@ -1,9 +1,12 @@
 {{=H5('permanent links (can be used to share current results)')}}
-{{=url}}
+
 <br>
-{{=ploturl}}
+{{=A('link to this page', _href=URL('default','protein',args=[label,genome,tag],extension=''))}}
 <br>
-{{=resultsurl}}
+{{=A('link to plot', _href=URL('default','plots.load',
+                vars={'label':label,'genome':genome,'tag':tag,'n':3},extension=''))}}
 <br>
-{{=downloadurl}}
+{{=A('link to results table', _href=URL('default','results.load',
+                vars={'label':label,'genome':genome,'tag':tag},extension=''))}}
+
 
