@@ -123,66 +123,31 @@ def embedPlot(plot):
     print
     return js,tag
 
-def plotLines(preds,tag,n=3,width=850):
-    """Plot running averages of scores"""
+def plotAnnotations(plot,annotation):
+    h=1.8
+    y=1.4+h/2.0
+    if 'tmhmm' in annotation:
+        vals = annotation['tmhmm']
+        x=[i[0]+(i[1]-i[0])/2.0 for i in vals]
+        w=[i[1]-i[0] for i in vals]
+        print x,w,y
+        #source = ColumnDataSource(data=dict(x=x,y=y))
+        plot.rect(x,y, width=w, height=h,color='blue',line_color='blue',alpha=0.6)
+    if 'pfam27' in annotation:
+        vals = annotation['pfam27']
+        print vals
+        text = [i[0] for i in vals]
+        x=[i[1]+(i[2]-i[1])/2.0 for i in vals]
+        w=[i[2]-i[1] for i in vals]
+        print x,w,y
+        plot.rect(x,y, width=w, height=h,color='white',line_color='black',alpha=0.6)
+        plot.text(x,y-1, text=text, angle=0)
+    return
 
-    from bokeh.objects import Range1d,ColumnDataSource
-
-    plot = figure(title=tag,title_font_size="8pt",plot_width=width,plot_height=300,
-           #y_range=Range1d(start=1, end=len(preds)*8+1),
-           tools="xpan, xwheel_zoom, resize, hover, reset",
-           background_fill="#FAFAFA")
-
-    for m in preds:
-        pred = preds[m]
-        df = pred.data
-        sckey = pred.scorekey
-        pb = pred.getPromiscuousBinders(data=df,n=n)
-        #b = pred.getBinders(data=df)
-        means = df.groupby('pos').agg({sckey:'mean'})
-        c=colors[m]
-        print means
-        scores = means[sckey]
-        scores = pd.rolling_mean(scores,5)
-        scores = norm(scores)
-        if pred.cutoff<0:
-            scores = 1-scores
-        pos = scores.index
-        line(pos, scores.values, color=c, line_width=2, legend=m)
-        #bar(pos, scores.values, color=c, line_width=2, legend=m)
-        hold(True)
-
-        '''grps = df.groupby('allele')
-        alleles = grps.groups.keys()
-        g = list(grps)[0][1]
-        l = pred.getLength()
-        for a,g in grps:
-            b = pred.getBinders(data=g)
-            b = b[b.pos.isin(pb.pos)] #only promiscuous
-            g.sort('pos',inplace=True)
-            scores = pd.rolling_mean(g[sckey],20)
-            #print scores
-            pos = g['pos']
-            if pred.rankascending == 1 and pred.cutoff>0:
-                scores = 1/scores
-            scores = norm(scores)
-            c=colors[m]
-            scatter(pos, scores, color=c, size=3, alpha=0.7, legend=m)
-            #line(pos, scores, color=c, line_width=1, legend=m)
-            #patches(pos.values, scores.values, color=c, legend=m)
-            hold(True)'''
-
-    legend()
-    ygrid().grid_line_color = None
-    #html = plot.create_html_snippet(embed_base_url='../static/temp/',
-    #                         embed_save_loc=fp)
-    js,tag = embedPlot(plot) #new method
-    return tag
-
-def plotTracks(preds,tag,n=3,title=None,width=820):
+def plotTracks(preds,tag,n=3,title=None,width=820,annotation=None,seq=None):
     """Plot epitopes as parallel tracks"""
 
-    from bokeh.objects import Range1d,HoverTool,FactorRange
+    from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
     from bokeh.plotting import Figure
     height = 200+50*len(preds)
     ylabels=[]
@@ -193,7 +158,12 @@ def plotTracks(preds,tag,n=3,title=None,width=820):
            y_axis_label='allele',
            tools="xpan, xwheel_zoom, resize, hover, reset, save",
            background_fill="#FAFAFA")
+
     h=1
+    #if annotation != None:
+    #    plotAnnotations(plot,annotation)
+    #    h=4
+
     for m in preds:
         pred = preds[m]
         cmap = mpl.cm.get_cmap(colormaps[m])
@@ -233,12 +203,10 @@ def plotTracks(preds,tag,n=3,title=None,width=820):
                  x_range=Range1d(start=1, end=len(g)+l),
                  color=c,line_color='gray',alpha=0.7,source=source,
                  min_border_left=2,min_border_right=2,legend=m)
-            #hold(True)
             h+=1
 
     #hover = [t for t in plot.tools if isinstance(t, HoverTool)][0]
     hover = plot.select(dict(type=HoverTool))
-    #print hover
     hover.tooltips = OrderedDict([
         ("allele", "@allele"),
         ("position", "@position"),
@@ -279,7 +247,6 @@ def getPredictions(label,genome,tag):
 
     path = os.path.join(datapath, label)
     genomename = os.path.splitext(genome)[0]
-    #resultspath = os.path.join(path,genomename)
     preds = OrderedDict()
     for m in methods:
         rpath = os.path.join(path, '%s/%s' %(genomename,m))
@@ -349,10 +316,19 @@ def plots():
     kind = request.vars.kind
 
     preds = getPredictions(label,g,tag)
-    if kind == 'lines':
-        figure = plotLines(preds,tag)
-    else:
-        figure = plotTracks(preds,tag,n=n,width=width)
+    sd={"tmhmm":[[29,51],[66,88]],
+        'gene3d': [['3.40.50.300',
+           'P-loop containing nucleotide triphosphate hydrolases',
+          21, 229, 1.2e-100]]}
+    feature, fastafmt, previous, next = getFeature(g,tag)
+    seq = feature.qualifiers['translation'][0]
+    '''if request.vars.annotation == 'on':
+        feature, fastafmt, previous, next = getFeature(g,tag)
+        seq = feature.qualifiers['translation'][0]
+        print seq
+        sd = getSeqDepot(seq)
+        annot = sd['t']'''
+    figure = plotTracks(preds,tag,n=n,width=width,annotation=annot,seq=seq)
     return dict(figure=figure,preds=preds)
 
 def results():
@@ -403,19 +379,12 @@ def links():
     return dict(url=url, downloadurl=downloadurl,iedburl=iedburl,
                 ploturl=ploturl,resultsurl=resultsurl)
 
-def sequence():
-    """Component to highlight epitopes on sequence"""
+def showSequence(seq,preds):
+    """Get html display of binders on sequences"""
 
     colors = {'tepitope':'#70E2AA','netmhciipan':'#FF8181',
               'iedbmhc1':'#9DCEFF','iedbmhc2':'orange','threading':'#BCA9F5'}
-    label = request.vars.label
-    g = request.vars.genome
-    tag = request.vars.tag
-    n = int(request.vars.n)
-    feat, fastafmt, previous, next = getFeature(g,tag)
-    seq = feat.qualifiers['translation'][0]
-    preds = getPredictions(label,g,tag)
-    l=9 #need to get this from predictors really
+    l=9 #need to get this from predictors
     seqs=[]
     tabledata=[]
     #idx =  ''.join([seq[i] if i%10!=0 else '|' for i in range(len(seq))])
@@ -437,7 +406,20 @@ def sequence():
                     seqhtml.append(SPAN(seq[i],_style="color: gray"))
             tabledata.append((TR(TH(a),TD(*seqhtml))))
     table = TABLE(*tabledata,_class="seqtable")
-    return dict(seqs=seqs,table=table)
+    return table
+
+def sequence():
+    """Component to highlight epitopes on sequence"""
+
+    label = request.vars.label
+    g = request.vars.genome
+    tag = request.vars.tag
+    n = int(request.vars.n)
+    feat, fastafmt, previous, next = getFeature(g,tag)
+    seq = feat.qualifiers['translation'][0]
+    preds = getPredictions(label,g,tag)
+    table = showSequence(seq,preds)
+    return dict(table=table)
 
 def feature():
     """Component showing gene annotation"""
@@ -449,6 +431,7 @@ def feature():
         feat, fastafmt, previous, next = items
     return dict(fastafmt=fastafmt,feat=feat,
                 previous=previous,next=next)
+    return dict()
 
 def iedb():
     """remote iedb tools predcitions"""
@@ -468,10 +451,7 @@ def seqdepot():
     tag = request.vars.tag
     feature, fastafmt, previous, next = getFeature(g,tag)
     seq = feature.qualifiers['translation'][0]
-    import SeqDepot
-    sd = SeqDepot.new()
-    aseqid = sd.aseqIdFromSequence(seq)
-    result = sd.findOne(aseqid)
+    result = getSeqDepot(seq)
     #print result
     kys = result['t'].keys()
     tables = {}
@@ -755,16 +735,61 @@ def selectionForm(defaultid='results_bovine'):
                     multiple=False),default=1,label='genome'),
               Field('tag', 'string', label='locus tag',default='Rv0011c'),
               Field('n', 'string', label='min alleles',default=3),
+              Field('globalcutoff', 'boolean', label='global cutoff',default=True),
+              Field('perccutoff', 'string', label='perc. cutoff',default=.9),
+              Field('annotation', 'boolean', label='annotation',default=True),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
     form.element('input[name=n]')['_style'] = 'width:50px;'
+    form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
     return form
 
 def quickview():
     """Quickview"""
+
     defaultid = 'results_bovine'
     form = selectionForm()
-    return dict(label=defaultid,kind='tracks',form=form)
+    return dict(label=defaultid,form=form)
+
+def quickview1():
+    defaultid = 'results_bovine'
+    form = selectionForm()
+    return dict(label=defaultid,form=form)
+
+def show():
+    """Quickview all results in one - faster"""
+
+    label = request.vars.label
+    g = request.vars.genome
+    tag = request.vars.tag
+    n = int(request.vars.n)
+    kind = request.vars.kind
+    width = 820
+
+    if label == 'dummy':
+        figure = plotEmpty()
+    preds = getPredictions(label,g,tag)
+    feat, fastafmt, previous, next = getFeature(g,tag)
+    seq = feat.qualifiers['translation'][0]
+    figure = plotTracks(preds,tag,n=n,width=width)
+    summary = summaryhtml(preds)
+    #get all results into tables
+    data = {}
+    for p in preds:
+        data[p] = preds[p].reshape()
+    data = dict(data)
+    #top binders
+    b = Base.getBinders(preds,n=n)
+    kys = b.keys()
+    if 'tepitope' in kys and 'netmhciipan' in kys:
+        shared = pd.merge(b['tepitope'],b['netmhciipan'],
+                    on=['peptide','name','pos','core'],
+                    copy=False).sort('pos')
+    else:
+        shared=''
+    seqtable = showSequence(seq,preds)
+    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,
+                b=b,summary=summary,shared=shared,n=n,seqtable=seqtable)
 
 def analysis():
     """Genome wide analysis of epitope predictions"""
@@ -1056,26 +1081,32 @@ def test():
 def bokehtest():
     """Bokeh test"""
 
-    from bokeh.objects import Range1d, HoverTool
-    figure(plot_width=800, plot_height=400,tools="xwheel_zoom,xpan,reset")
-    N = 200
+    from bokeh.objects import Range1d, HoverTool, GridPlot
+    from bokeh.plotting import Figure
+    N = 100
     x = np.random.random(size=N) * 100
     y = np.random.random(size=N) * 100
     radii = np.random.random(size=N) * 3
     colors = ["#%02x%02x%02x" % (r, g, 150) for r, g in zip(np.floor(50+2*x), np.floor(30+2*y))]
     source = ColumnDataSource(data=dict(x=x,y=y,radius=radii))
-    scatter(x, y, radius=radii,
-           fill_color=colors, fill_alpha=0.6,
-           line_color='gray', Title="Scatter", source=source)
-    hold(True)
-    hover = curplot().select(dict(type=HoverTool))
-    hover.tooltips = OrderedDict([
-        ("radius", "@radius")])
-    xgrid().grid_line_color = None
-    ygrid().grid_line_color = None
-    legend()
-    plot = curplot()
-    js,html = embedPlot(plot)
+
+    def makeplot():
+        p = Figure(plot_width=800, plot_height=200,tools="hover,pan",title=None)
+        p.scatter(x, y, radius=radii,
+               fill_color=colors, fill_alpha=0.6,
+               line_color='gray', source=source)
+        hover = p.select(dict(type=HoverTool))
+        hover.tooltips = OrderedDict([
+            ("radius", "@radius")])
+        p.xgrid.grid_line_color = None
+        p.ygrid.grid_line_color = None
+        return p
+
+    p1 = makeplot()
+    p2 = makeplot()
+    p3 = makeplot()
+    p = GridPlot(children=[[p1],[p2],[p3]],title='test')
+    js,html = embedPlot(p)
     return dict(figure=html)
 
 @auth.requires_login()

@@ -206,11 +206,11 @@ div.monospace {
     background-color: #F1F1F1;
     display: inline-block;
     border-width:0px;
-    padding: 6px;
+    padding: 4px;
 }
 .myform input {
     width: 150px;
-    height: 28;
+
 }
 .myform select {
     width: 150px;

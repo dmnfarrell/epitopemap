@@ -46,6 +46,18 @@ def getOrthologs(seq):
     df = Analysis.getOrthologs(seq)
     return df
 
+def getSeqDepot(seq):
+    """Fetch seqdepot annotation for sequence"""
+    import SeqDepot
+    sd = SeqDepot.new()
+    aseqid = sd.aseqIdFromSequence(seq)
+    try:
+        result = sd.findOne(aseqid)
+    except Exception, e:
+        print e
+        result=None
+    return result
+
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)
 

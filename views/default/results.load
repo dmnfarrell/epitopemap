@@ -1,5 +1,5 @@
 <script src="{{=URL('static','js/sorttable.js')}}"></script>
-<div class="span2 offset6">
+<div>
 <div class="scrollingArea" style="width:100%">
 {{for m in data:}}
 {{=DIV(_class="floatleft")}}

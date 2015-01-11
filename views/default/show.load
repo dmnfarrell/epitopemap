@@ -1,0 +1,60 @@
+<script src="{{=URL('static','js/sorttable.js')}}"></script>
+<div class="tabs">
+    <ul class="tab-links">
+        <li class="active"><a href="#plot">plot</a></li>
+        <li><a href="#scores">score distribution</a></li>
+        <li><a href="#sequence">sequence view</a></li>
+        <li><a href="#binders">top binders</a></li>
+        <li><a href="#allresults">all results</a></li>
+        <li><a href="#feature">gene feature</a></li>
+        <li><a href="#links">links</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="plot" class="tab active">
+            {{=XML(figure)}}
+        </div>
+
+        <div id="sequence" class="tab">
+            {{=seqtable}}
+        </div>
+
+        <div id="binders" class="tab">
+           {{include 'default/binders.load'}}
+        </div>
+
+        <div id="allresults" class="tab">
+            {{include 'default/results.load'}}
+        </div>
+
+        <div id="feature" class="tab">
+          {{include 'default/feature.load'}}
+        </div>
+
+        <div id="scores" class="tab">
+
+        </div>
+
+        <div id="links" class="tab">
+
+        </div>
+
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.tabs .tab-links a').on('click', function(e)  {
+        var currentAttrValue = $(this).attr('href');
+        // Show/Hide Tabs
+        $('.tabs ' + currentAttrValue).show().siblings().hide();
+        // Change/remove current tab to active
+        $(this).parent('li').addClass('active').siblings().removeClass('active');
+
+        e.preventDefault();
+    });
+});
+
+</script>
