@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os,sys,types
-import Base, Genome
+import Base, Genome, Analysis
 home = os.path.expanduser("~")
 #datapath = os.path.join(home,'epitopedata')
-datapath = os.path.join(request.folder,'static/data/')
+datapath = os.path.join(request.folder,'static/data/results')
 genomespath = os.path.join(request.folder,'static/data/genomes')
 
 def doTask():
@@ -12,25 +12,31 @@ def doTask():
     t = time.ctime()
     return dict(result=t)
 
-def runPredictor(label,genome,names=None,methods='tepitope',
-                alleles=['HLA-DRB1*0101'], **kwargs):
-    """Run predictors"""
+def runPredictor(label,genome,newlabel=None,names=None,methods='tepitope',
+                 mhc1alleles=[], mhc2alleles=[],**kwargs):
+    """Run predictors and save results"""
 
     if names != None:
         names = names.split(',')
-    print label,genome,methods
+    if newlabel != None:
+        label = newlabel
+    query = db.genomes(db.genomes.name==genome)
+    f,gfile = db.genomes.file.retrieve(query.file)
+    #print gfile
     if type(methods) is not types.ListType:
         methods = [methods]
     for method in methods:
+        if method in ['iedbmhc2']:
+            alleles = mhc1alleles
+        else:
+            alleles = mhc2alleles
         P = Base.getPredictor(method)
-        savepath = os.path.join(datapath, label)
-        #if not os.path.exists(savepath):
-        #    os.mkdir(savepath)
-        gfile = os.path.join(genomespath,'%s.gb' %genome)
+        savepath = os.path.join(datapath, label, method)
         df = Genome.genbank2Dataframe(gfile, cds=True)
-        P.predictProteins(df,length=11,names=names,alleles=alleles,
+        P.predictProteins(df,length=11,names=None,alleles=alleles,
                                 label=label,save=True,path=savepath)
-        #also pre-calculate binders
+
+        #also pre-calculate binders for n=3
         b = Analysis.getAllBinders(savepath,method=method,n=n)
         b.to_csv(binderfile)
     rows = len(P.data)

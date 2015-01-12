@@ -445,14 +445,9 @@ def iedb():
     result = XML(df.to_html(classes='mytable'))
     return dict(result=result)
 
-def seqdepot():
-    """Sedepot data fetch and return tables"""
+def seqdepot(result):
+    """Sedepot data table format"""
 
-    g = request.vars.genome
-    tag = request.vars.tag
-    feature, fastafmt, previous, next = getFeature(g,tag)
-    seq = feature.qualifiers['translation'][0]
-    result = getSeqDepot(seq)
     #print result
     kys = result['t'].keys()
     tables = {}
@@ -487,25 +482,8 @@ def protein():
     else:
         raise HTTP(404, "No such genome available %s" %g)
         return
-    #if not tag in index:
-    #    raise HTTP(404, tag + " is not a valid locus tag")
-    #    return
 
-    #preds = getPredictions(label,g,tag)
-    #b = Base.getBinders(preds,n=n)
-
-    #if len(preds)==0:
-    #    s = 'no available predictions found for %s' %t
-    #    s += ' using path %s' %resultspath
-    #    raise HTTP(404, T(s))
-    #    return
-
-    #iedbform = FORM(INPUT(_name='genome',_type='hidden', value=g),
-    #                INPUT(_name='tag',_type='hidden', value=tag),
-    #                INPUT(_name='submit',_type='submit',_value='IEDB request'),
-    #                _id="iedbform")
-
-    result = dict(label=label,tag=tag,genome=g,kind='tracks',n=n,
+    result = dict(label=label,tag=tag,genome=g,n=n,
                    previous=previous,next=next)
     return result
 
@@ -715,18 +693,6 @@ def quicksearch():
         #response.flash = 'no such prediction id or genome name'
     return form
 
-def heading():
-    label = request.vars.label
-    g = request.vars.genome
-    tag = request.vars.tag
-    preds = getPredictions(label,g,tag)
-    path = os.path.join(datapath, label)
-    found = [(m,preds[m].getLength()) for m in preds]
-    if m in Base.globalcutoffs:
-        pred.allelecutoffs = Base.globalcutoffs[m][l]
-    info = TABLE(*found,_class='tinytable')
-    return dict(genome=g,tag=tag,preds=preds,summaryinfo=info,path=path)
-
 def selectionForm(defaultid='results_bovine'):
 
     form = SQLFORM.factory(
@@ -761,12 +727,18 @@ def show():
     tag = request.vars.tag
     n = int(request.vars.n)
     kind = request.vars.kind
-    width = 820
+    if request.vars.width == None:
+        width = 820
+    else:
+        width = int(request.vars.width)
     annot = request.vars.annotation
 
     if label == 'dummy':
         figure = plotEmpty()
     preds = getPredictions(label,g,tag)
+    if len(preds)==0:
+        redirect(URL('error'))
+
     feat, fastafmt, previous, next = getFeature(g,tag)
     seq = feat.qualifiers['translation'][0]
     sd=None
@@ -790,9 +762,16 @@ def show():
     else:
         shared=''
     seqtable = showSequence(seq,preds)
+    #info
+    path = os.path.join(datapath, label)
+    found = [(m,preds[m].getLength()) for m in preds]
+    info = TABLE(*found,_class='tinytable')
     return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots
                 b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,
-                genome=g,tag=tag,label=label)
+                genome=g,tag=tag,label=label,info=info,path=path)
+
+def error():
+    return dict()
 
 def analysis():
     """Genome wide analysis of epitope predictions"""
@@ -1023,15 +1002,15 @@ def submissionForm():
     mhc2alleles = Tepitope.refalleles
     form = FORM(DIV(
             TABLE(
-            TR(TD(LABEL('current ids:',_for='genome')),
+            TR(TD(LABEL('current labels:',_for='genome')),
             TD(SELECT(*opts1,_name='label',
                     value='', _style="width:200px;"))),
-            TR(TD(LABEL('new id:',_for='genome')),
+            TR(TD(LABEL('new label:',_for='genome')),
             TD(INPUT(_name='newlabel',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('genome:',_for='genome')),
             TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:200px;"))),
             TR(TD(LABEL('tags:',_for='names')),
-            TD(INPUT(_name='names',_type='text',value="Rv0011c",_style="width:200px;"))),
+            TD(INPUT(_name='names',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('fasta file:',_for='fastafile')),
             TD(INPUT(_name='fastafile',_type='file',_style="width:200px;"))),
             TR(TD(LABEL('methods:',_for='methods')),
@@ -1041,10 +1020,10 @@ def submissionForm():
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='alleles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II alleles:',_for='alleles')),
-            TD(SELECT(*mhc2alleles,_name='alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc2alleles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
                 _multiple=True))),_class="smalltable"),_style='float: left'),
             _id="myform")#, _class='myform')
 

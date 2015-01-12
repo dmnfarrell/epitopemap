@@ -1,10 +1,5 @@
 <div class="heading">
-{{if len(preds)==0:}}
-{{=T('no predictions for %s/%s!' %(tag,genome))}}
-{{=T('check values')}}
-{{else:}}
 {{=T(tag+', '+genome)}}
-{{pass}}
 {{=T(path)}}
-{{=summaryinfo}}
+{{=summary}}
 </div>

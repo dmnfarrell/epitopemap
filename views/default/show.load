@@ -2,7 +2,7 @@
 <div class="tabs">
     <ul class="tab-links">
         <li class="active"><a href="#plot">plot</a></li>
-        <li><a href="#scores">score distribution</a></li>
+        <li><a href="#info">info</a></li>
         <li><a href="#sequence">sequence view</a></li>
         <li><a href="#binders">top binders</a></li>
         <li><a href="#allresults">all results</a></li>
@@ -31,8 +31,8 @@
           {{include 'default/feature.load'}}
         </div>
 
-        <div id="scores" class="tab">
-
+        <div id="info" class="tab">
+          {{include 'default/heading.load'}}
         </div>
 
         <div id="links" class="tab">
