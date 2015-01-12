@@ -1,7 +1,14 @@
 {{extend 'layout.html'}}
 
 <div class="row">
-<div class="span9">
+
+<div class="span4">
+{{=H4('Configuration')}}
+{{=form}}
+</div>
+
+<div class="span4 offset2">
+{{=H4('Other settings')}}
 {{actions = (
 	      ('Manage genomes','genomes'), ('Manage predictions','predictions')) }}
 
@@ -9,4 +16,4 @@
 <li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>
 {{pass}}
 
-</div>
+</div></div>

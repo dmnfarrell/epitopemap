@@ -6,11 +6,14 @@
 {{=H5('You can update the job status by refreshing this page.')}}
 {{=T('Job status is always accessible at ' )}}
 {{=A('this link', _href=URL('default','jobsubmitted',vars={'id':taskid}))}}
+{{=T('Admin users can view scheduled tasks ')}}
+{{=A('here', _href=URL('appadmin','select',args=['db'],vars={'query':'db.scheduler_task.id>0'}))}}
 {{st=status['scheduler_task']}}
 {{sr=status['scheduler_run']}}
 
 <div class='header'>
 {{=H5('task id: %s, status: %s' %(taskid, st['status']))}}
 {{=TABLE(*sr.items(),_class='smalltable')}}
+{{=H5('variables:')}}
 {{=st['vars']}}
 </div>

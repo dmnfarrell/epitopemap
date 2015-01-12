@@ -1009,7 +1009,7 @@ def submissionForm():
             TD(INPUT(_name='newlabel',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('genome:',_for='genome')),
             TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:200px;"))),
-            TR(TD(LABEL('tags:',_for='names')),
+            TR(TD(LABEL('locus tags:',_for='names')),
             TD(INPUT(_name='names',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('fasta file:',_for='fastafile')),
             TD(INPUT(_name='fastafile',_type='file',_style="width:200px;"))),
@@ -1093,7 +1093,18 @@ def bokehtest():
 
 @auth.requires_login()
 def admin():
-    return dict()
+    """Settings"""
+    parser,conffile = getConfig()
+    options = dict(parser.items('base'))
+    form = SQLFORM.dictform(options)
+    if form.process().accepted:
+        for i in dict(parser.items('base')):
+            print i
+            parser.set('base', i, form.vars[i])
+        parser.write(open(conffile,'w'))
+        response.flash='Saved'
+        redirect(URL('default','admin'))
+    return dict(form=form)
 
 def about():
     msg = 'About this page'
