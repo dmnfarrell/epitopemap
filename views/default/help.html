@@ -4,7 +4,7 @@
 <div class="span2">
 
 <h4>Table of Contents</h4>
-<li><a href="#Submitting">Submitting predictions</a></li>
+<li><a href="#Running">Running predictions</a></li>
 <li><a href="#Viewing">Viewing predictions</a></li>
 <li><a href="#Genomewide">Genome wide analysis</a></li>
 <li><a href="#Conservation">Eptiope conservation</a></li>
@@ -19,12 +19,10 @@ entire proteomes.
 
 <div class="span9 offset0">
 
-<a name="Submitting"></a>
-<h3>Submitting predictions</h3>
-<p>
-Jobs can be run on the command line or executed via the web interface.
+<a name="Running predictions"></a>
+<h3>Running predictions</h3>
 
-<h5>Web interface</h5>
+<h4>Web interface</h4>
 <p>
 
 This application is designed to allow binding predictions to be run for multiple proteins, such as
@@ -32,12 +30,16 @@ a whole bacterial genome. The time taken depends on the number of alleles, numbe
 the prediction method. Tepitope is fastest and will take less than 15 minutes to do a genome with
 ~4000 proteins for each allele. NetMHCIIpan will be noticeably slower.
 <p>
+The binding predictions are made by submitting jobs via the submit form.
 Jobs are queued and run in the background using the web2py scheduler system and are run consecutively. However it is possible
 to create multiple workers when web2py is started and thus multiple queues. You could do this if
 you are using a computer with multiple processors and want to make better use of them.
 
-<h5>Methods</h5>
-The current prediction methods available are:
+<h4>Methods</h4>
+The tepitope method is an internal implementation and requires no external program to run.
+netMHCIIpan must be downloaded from the website and installed on your system. The process is simple.
+The same applies for the IEDB tools. Here are the available methods:
+
 <li>
 {{=A('TEPITOPEPan', _href='http://www.biokdd.fudan.edu.cn/Service/TEPITOPEpan/TEPITOPEpan.html')}}
 </li>
@@ -46,26 +48,30 @@ The current prediction methods available are:
 </li>
 <li>{{=A('IEDB tools', _href='http://tools.immuneepitope.org/main/html/tcell_tools.html')}}</li>
 </li>
-<li>Threading</li>
+<li>Threading (an untested method) </li>
 
-<h5>Selection of alleles</h3>
+<h4>Selection of alleles</h4>
 
-<h4>Adding previously calculated predictions</h4>
+<h4>How predictions are stored</h4>
 <p>
-Jobs sumitted via the web app are automatically added to a database recording the name of
-the folder and which genome they are associated with. Users don't need to know further
-details of file locations etc. However if needed, results from previous calculations can be added to the database manually. This simple requires the
-location of the folder on the local file system. Results should be kept in one
-directory per genome with a folder for each prediction method. Results are stored in one
-file per protein.
+Storage of results uses a very simple method. Results run via the web app are simply added
+to the database recording an identifier. All results are then stored according to the label/identifier
+with one directory per genome and then a folder for each prediction method. Inside this is a file
+for each protein prediction as follows.  Each file is stored  in
+{{=A('MessagePack', _href='http://msgpack.org')}} format, which is a binary format for
+efficient storage). Data is stored in this way so that results can be quickly loaded for a
+specific protein.
+
+Example:
 
 <div class="monospace">
-/home/user/data/myresults/Mbovis/tepitope/Mb0012.mpk
+<p>../static/results/identifier/genome/method/locus_tag.mpk
+<p>e.g:
+<p>../static/results/testresults/Mbovis/tepitope/Mb0012.mpk
 </div>
 <br>
-This example is for tepitope prediction data for the protein Mb0012 in Mbovis. (The file extension
-.mpk indicates a {{=A('MessagePack', _href='http://msgpack.org')}} file, which is a
-binary format for efficient storage):
+This example is for tepitope prediction data for the protein Mb0012 in Mbovis. All results
+are stored in the static/results folder of the web application.
 
 <a name="Viewing"></a>
 <h3>Viewing predictions</h3>

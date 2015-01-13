@@ -62,7 +62,8 @@ db.define_table('genomes',
 db.define_table('predictions',
         Field('identifier','string',required=True),
         Field('user','string',requires=IS_NOT_EMPTY()),
-		Field('path','string',unique=True,requires=IS_NOT_EMPTY()))
+        Field('description','string',requires=IS_NOT_EMPTY()))
+		#Field('path','string',unique=True,requires=IS_NOT_EMPTY()))
 
 db.define_table('proteins',
         Field('genome','string'),

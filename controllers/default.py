@@ -20,7 +20,8 @@ import bokeh
 from bokeh.plotting import *
 home = os.path.expanduser("~")
 genomespath = os.path.join(request.folder,'static/data/genomes')
-datapath = os.path.join(home,'epitopedata')
+#datapath = os.path.join(home,'epitopedata')
+datapath = os.path.join(request.folder,'static/results')
 import Genome, Base, Tepitope, Analysis
 methods = ['tepitope','netmhciipan','iedbmhc1','iedbmhc2','threading']
 colors = {'tepitope':'green','netmhciipan':'red',
@@ -242,58 +243,6 @@ def plotEmpty(width=850):
     print plot
     return html
 
-def getPredictions(label,genome,tag):
-    """Get predictions from file system"""
-
-    path = os.path.join(datapath, label)
-    genomename = os.path.splitext(genome)[0]
-    preds = OrderedDict()
-    for m in methods:
-        rpath = os.path.join(path, '%s/%s' %(genomename,m))
-        filename = os.path.join(rpath, tag+'.mpk')
-        if not os.path.exists(filename):
-            continue
-        df = pd.read_msgpack(filename)
-        pred = Base.getPredictor(name=m, data=df)
-        l=pred.getLength()
-        if m in Base.globalcutoffs:
-            pred.allelecutoffs = Base.globalcutoffs[m][l]
-        if pred == None:
-            continue
-        preds[m] = pred
-    return preds
-
-def getGenome(name):
-    """Get a genome file from the db"""
-
-    record = db.genomes(db.genomes.name==name)
-    #import cStringIO
-    #s=cStringIO.StringIO()
-    #(filename,file) = db.genomes.file.retrieve(record.file)
-    #s.write(file.read())
-    filename = os.path.join(request.folder,'uploads',record.file)
-    return filename
-
-def getFeature(g,tag):
-    """Get gene feature from stored genbank file - inefficient"""
-
-    from Bio import SeqIO
-    fname = getGenome(g)
-    record = SeqIO.read(fname,'genbank')
-    index = Genome.indexGenbankFeatures(record,"CDS","locus_tag")
-    if record == None:
-        return
-    feature = record.features[index[tag]]
-    fastafmt = Genome.fastaFormatfromFeature(feature)
-    keys = sorted(index.keys())
-    ind = keys.index(tag)
-    previous = keys[ind-1]
-    if ind<len(keys)-1:
-        next = keys[ind+1]
-    else:
-        next=None
-    return feature, fastafmt, previous, next
-
 def plots():
     """Use as component to plot predictions for given request"""
 
@@ -317,8 +266,6 @@ def plots():
 
     preds = getPredictions(label,g,tag)
     sd=None
-    feature, fastafmt, previous, next = getFeature(g,tag)
-    seq = feature.qualifiers['translation'][0]
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
         seq = feature.qualifiers['translation'][0]
@@ -736,11 +683,12 @@ def show():
     if label == 'dummy':
         figure = plotEmpty()
     preds = getPredictions(label,g,tag)
-    if len(preds)==0:
-        redirect(URL('error'))
+
+    #if len(preds)==0:
+    #    redirect(URL('error'))
 
     feat, fastafmt, previous, next = getFeature(g,tag)
-    seq = feat.qualifiers['translation'][0]
+    seq = feat['translation']
     sd=None
     if request.vars.annotation == 'on':
         sd = getSeqDepot(seq)['t']
@@ -1000,6 +948,7 @@ def submissionForm():
     pi=Base.getPredictor('iedbmhc1')
     mhc1alleles = pi.getMHCIList()
     mhc2alleles = Tepitope.refalleles
+    lengths = [9,11,13,15]
     form = FORM(DIV(
             TABLE(
             TR(TD(LABEL('current labels:',_for='genome')),
@@ -1016,6 +965,8 @@ def submissionForm():
             TR(TD(LABEL('methods:',_for='methods')),
             TD(SELECT(*methods,_name='methods',value='tepitope',_size=5,_style="width:200px;",
                 _multiple=True))),
+            TR(TD(LABEL('length:',_for='length')),
+            TD(SELECT(*lengths,_name='length',value=11,_size=1,_style="width:50px;"))),
             TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit Job'))),
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
