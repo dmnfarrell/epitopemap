@@ -23,7 +23,8 @@ jQuery('#myform').submit(function() {
 
 <script>
 jQuery('#myform').submit(function() {
-  ajax('{{=URL('default', 'show.load')}}', ['label','genome','tag','n','annotation'], 'resultdiv');
+  ajax('{{=URL('default', 'show.load')}}',
+    ['label','genome','tag','n','perccutoff','annotation'], 'resultdiv');
   return false;
 });
 </script>

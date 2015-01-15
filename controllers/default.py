@@ -150,12 +150,17 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
 
     from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
     from bokeh.plotting import Figure
-    height = 200+50*len(preds)
+
+    alls=0
+    for m in preds:
+        alls += len(preds[m].data.groupby('allele'))
+    height = 120+10*alls
+    yrange = Range1d(start=1, end=alls)
     ylabels=[]
     colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
                'threading':'Purples','iedbmhc1':'Blues'}
     plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
-           y_range=Range1d(start=1, end=len(preds)*8+1), #y_range=ylabels,
+           y_range=yrange, #y_range=ylabels,
            y_axis_label='allele',
            tools="xpan, xwheel_zoom, resize, hover, reset, save",
            background_fill="#FAFAFA")
@@ -650,7 +655,7 @@ def selectionForm(defaultid='results_bovine'):
               Field('tag', 'string', label='locus tag',default='Rv0011c'),
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
-              Field('perccutoff', 'string', label='perc. cutoff',default=.9),
+              Field('perccutoff', 'string', label='perc. cutoff',default=.95),
               Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
@@ -673,7 +678,7 @@ def show():
     g = request.vars.genome
     tag = request.vars.tag
     n = int(request.vars.n)
-    kind = request.vars.kind
+    cutoff = float(request.vars.perccutoff)
     if request.vars.width == None:
         width = 820
     else:
@@ -682,7 +687,7 @@ def show():
 
     if label == 'dummy':
         figure = plotEmpty()
-    preds = getPredictions(label,g,tag)
+    preds = getPredictions(label,g,tag,cutoff)
 
     #if len(preds)==0:
     #    redirect(URL('error'))
@@ -879,7 +884,7 @@ def conservationanalysis():
     alnrows = alnrows[alnrows['perc_ident']>=identity]
 
     #get predictions and find in each blast record
-    preds = getPredictions(label,gname,tag)
+    preds = getPredictions(label,gname,tag,cutoff=0.95)
     if not preds.has_key(method):
         return dict(res=None)
     print preds
@@ -939,15 +944,18 @@ def conservationanalysis():
 
 def submissionForm():
     """Form for job submission"""
-    defaultg = 'MTB-H37Rv'
 
+    applySettings() #so that paths to predictors work
+    defaultg = 'MTB-H37Rv'
     predids = [p.identifier for p in db().select(db.predictions.ALL)]
     opts1 = [OPTION(i,value=i) for i in predids]
     genomes = [p.name for p in db().select(db.genomes.ALL)]
     opts2 = [OPTION(i,value=i) for i in genomes]
     pi=Base.getPredictor('iedbmhc1')
     mhc1alleles = pi.getMHCIList()
-    mhc2alleles = Tepitope.refalleles
+    pii=Base.getPredictor('netmhciipan')
+    mhc2alleles=pii.getAlleleList()
+    tepitopealleles = Tepitope.refalleles
     lengths = [9,11,13,15]
     form = FORM(DIV(
             TABLE(

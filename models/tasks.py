@@ -45,9 +45,10 @@ def getFeature(g,tag):
         next=None
     return feature, fastafmt, previous, next
 
-def getPredictions(label,genome,tag):
+def getPredictions(label,genome,tag,q=0.98):
     """Get predictions from file system"""
 
+    q=round(q,2)
     path = os.path.join(datapath, label)
     print path
     genomename = os.path.splitext(genome)[0]
@@ -61,8 +62,12 @@ def getPredictions(label,genome,tag):
         df = pd.read_msgpack(filename)
         pred = Base.getPredictor(name=m, data=df)
         l=pred.getLength()
-        if m in Base.globalcutoffs:
-            pred.allelecutoffs = Base.globalcutoffs[m][l]
+        quantfile = os.path.join(rpath,'quantiles.csv')
+        print quantfile
+        if not os.path.exists(quantfile):
+            Base.getScoreDistributions(m, rpath)
+        quantiles = pd.read_csv(quantfile,index_col=0)
+        pred.allelecutoffs = dict(quantiles.ix[q])
         if pred == None:
             continue
         preds[m] = pred
@@ -94,7 +99,8 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
             os.makedirs(savepath)
         P.predictProteins(df,length=length,names=None,alleles=alleles,
                                 label=label,save=True,path=savepath)
-
+        #get score quantiles
+        Base.getScoreDistributions(method, savepath)
         #also pre-calculate binders for n=3
         b = Analysis.getAllBinders(savepath,method=method,n=3)
         binderfile = os.path.join(savepath, 'binders_3.csv')
