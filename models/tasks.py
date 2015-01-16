@@ -45,7 +45,7 @@ def getFeature(g,tag):
         next=None
     return feature, fastafmt, previous, next
 
-def getPredictions(label,genome,tag,q=0.98):
+def getPredictions(label,genome,tag,q=0.95):
     """Get predictions from file system"""
 
     q=round(q,2)
@@ -61,13 +61,8 @@ def getPredictions(label,genome,tag,q=0.98):
             continue
         df = pd.read_msgpack(filename)
         pred = Base.getPredictor(name=m, data=df)
-        l=pred.getLength()
-        quantfile = os.path.join(rpath,'quantiles.csv')
-        print quantfile
-        if not os.path.exists(quantfile):
-            Base.getScoreDistributions(m, rpath)
-        quantiles = pd.read_csv(quantfile,index_col=0)
-        pred.allelecutoffs = dict(quantiles.ix[q])
+        #l=pred.getLength()
+        pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
         if pred == None:
             continue
         preds[m] = pred
@@ -89,7 +84,7 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
         methods = [methods]
     length=int(length)
     for method in methods:
-        if method in ['iedbmhc2']:
+        if method in ['iedbmhc1']:
             alleles = mhc1alleles
         else:
             alleles = mhc2alleles
@@ -99,8 +94,6 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
             os.makedirs(savepath)
         P.predictProteins(df,length=length,names=None,alleles=alleles,
                                 label=label,save=True,path=savepath)
-        #get score quantiles
-        Base.getScoreDistributions(method, savepath)
         #also pre-calculate binders for n=3
         b = Analysis.getAllBinders(savepath,method=method,n=3)
         binderfile = os.path.join(savepath, 'binders_3.csv')

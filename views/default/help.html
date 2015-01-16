@@ -51,6 +51,10 @@ The same applies for the IEDB tools. Here are the available methods:
 <li>Threading (an untested method) </li>
 
 <h4>Selection of alleles</h4>
+<p>
+Selection of which alleles to run will be entirely dependant upon the end results required. Users
+must have a particular goal in mind when making predictions. Simply using all alleles will NOT
+be helpful and will be very slow since there are so many human alleles.
 
 <h4>How predictions are stored</h4>
 <p>
@@ -72,6 +76,21 @@ Example:
 <br>
 This example is for tepitope prediction data for the protein Mb0012 in Mbovis. All results
 are stored in the static/results folder of the web application.
+
+<h4>Adding sequences</h4>
+<p>
+Before predictions you need to add your proteins/proteome to the application.
+Proteins sequences are added as either fasta or genbank format. Usually these will represent
+the annotated sequences of a species but any properly formatted file can be used that groups
+the proteins together. Genbank format files for an organism can be found on the
+ {{=A('NCBI genomes page',_href='http://www.ncbi.nlm.nih.gov/genome/')}} or downloaded
+{{=A('via ftp',_href='ftp://ftp.ncbi.nih.gov/genomes/')}}.
+<p>
+The program will use the locus tags in the genbank file for each protein. If these are not
+available the gene names are used. For fasta inputs the identifier following the ">" is used.
+Genbank or embl format is recommended since fasta files can have non-standard or confusing
+ids like gi|31563518|ref|NP_852610.1| which is not user friendly.
+Improperly formatted files may not work.
 
 <a name="Viewing"></a>
 <h3>Viewing predictions</h3>

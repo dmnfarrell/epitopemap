@@ -679,6 +679,11 @@ def show():
     tag = request.vars.tag
     n = int(request.vars.n)
     cutoff = float(request.vars.perccutoff)
+    print request.vars
+    if request.vars.perccutoff == None:
+        cutoff = 0.95
+    else:
+        cutoff = float(request.vars.perccutoff)
     if request.vars.width == None:
         width = 820
     else:
@@ -754,8 +759,7 @@ def analysegenome():
     gname = request.vars.genome
     label = request.vars.label
     method = request.vars.method
-    print request.vars.n
-    n = 3# int(request.vars.n)
+    n = int(request.vars.n)
 
     #need getpath method?
     path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
