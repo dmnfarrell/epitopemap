@@ -8,9 +8,9 @@
 <li><a href="#Viewing">Viewing predictions</a></li>
 <li><a href="#Genomewide">Genome wide analysis</a></li>
 <li><a href="#Conservation">Eptiope conservation</a></li>
-<li><a href="#Webapp">Web Application</a></li>
+<li><a href="#Administration">Administration</a></li>
+<li><a href="#Programmers">For Programmers</a></li>
 <li><a href="#References">References</a></li>
-
 </div>
 
 <h4>This is a web interface for visualising T cell epitope binding predictions of
@@ -80,16 +80,20 @@ are stored in the static/results folder of the web application.
 <h4>Adding sequences</h4>
 <p>
 Before predictions you need to add your proteins/proteome to the application.
-Proteins sequences are added as either fasta or genbank format. Usually these will represent
-the annotated sequences of a species but any properly formatted file can be used that groups
-the proteins together. Genbank format files for an organism can be found on the
+Annotated protein sequences are added as either fasta, embl or genbank format.
+Usually these will represent the annotated sequences of a species but any properly
+formatted file can be used that groups the proteins together.
+Genbank format files for an organism can be found on the
  {{=A('NCBI genomes page',_href='http://www.ncbi.nlm.nih.gov/genome/')}} or downloaded
 {{=A('via ftp',_href='ftp://ftp.ncbi.nih.gov/genomes/')}}.
+
 <p>
 The program will use the locus tags in the genbank file for each protein. If these are not
 available the gene names are used. For fasta inputs the identifier following the ">" is used.
-Genbank or embl format is recommended since fasta files can have non-standard or confusing
-ids like gi|31563518|ref|NP_852610.1| which is not user friendly.
+<b>Genbank or embl format is recommended</b> since fasta files can have non-standard or confusing
+ids like gi|31563518|ref|NP_852610.1| which is not very user friendly. Fasta files do not contain
+features present in genbank format such as gene product or location that can be useful for
+identifying the protein.
 Improperly formatted files may not work.
 
 <a name="Viewing"></a>
@@ -108,9 +112,9 @@ The protein URIs are structured so that they can be entered in the address bar i
 However the easiest way to find and view predictions for a known protein name is via the <b>quickview</b>
 page which has form for entering the protein details and a few other options.
 
-<h5>Searching for a protein</h5>
+<h4>Searching for a protein</h4>
 
-<h5>Binding prediction plots</h5>
+<h4>Binding prediction plots</h4>
 <p>
 Predictors will usually make multiple scoring predictions for each allele for an n-mer set of binders.
  This information can be hard to display in a single plot. The purpose of the plot is to allow
@@ -121,8 +125,12 @@ the user to quickly visualise where epitopes might be along the sequence and com
 <p>
 <img src=../static/images/help_plots.png width=900>
 
-<h5>Cut-offs for binders</h5>
+<h4>Cut-offs</h4>
 
+Selection of predicted binders can be done based on the percentile rank or MHC binding affinity.
+For MHC-II the IEDB currently recommends making selections based on a consensus percentile rank of the top 10%.
+See {{=A('this iedb help page',_href='http://help.iedb.org/entries/23854373-Selecting-thresholds-cut-offs-for-MHC-class-I-and-II-binding-predictions')}}
+for more information.
 
 <a name="Genomewide"></a>
 <h3>Genome wide analysis</h3>
@@ -186,15 +194,18 @@ The following field names may be useful:
 {{pass}}
 </div>
 
-<a name="Webapp"></a>
-<h3>The Web Application</h3>
+<a name="Administration"></a>
+<h3>Administration</h3>
 
-<h4>Administration</h4>
+<h4>Paths to binaries</h4>
+The IEDB tools and/or netMHCIIpan distributions are required to be installed locally
+for the web application to use them. To ensure that these programs can be found you can
+the path to the install folders here.
 
-<h5>Add/remove genomes</h5>
+<h4>Add/remove genomes</h4>
+See the instructions for adding sequences above.
 
-
-<h5>Add/remove predictions</h5>
+<h4>Add/remove predictions</h4>
 Results folders are added to the database whenever a set of predictions is submitted
 via the web interface. Therefore this menu is normally used to delete old predictions.
 However you can also manually add predictions so that they appear in the drop down menus.
@@ -204,6 +215,13 @@ Results added should exist on the filesystem.
 <div class="monospace">
 sudo python web2py.py -i localhost -a 123 -p 80 -K epitopemap -X
 </div>
+
+<a name="Programmers"></a>
+<h3>For Programmers</h3>
+The Python Predictor class and other modules used to implement the prediction routines are available
+at {{=A('this github page',_href='https://github.com/dmnfarrell/mhcpredict')}}. It is possible
+to implement other prediction methods using these classes and add them to the web application.
+See instructions on the github page.
 
 <a name="References"></a>
 
