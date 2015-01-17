@@ -439,25 +439,6 @@ def protein():
                    previous=previous,next=next)
     return result
 
-def genomeSummary(g):
-
-    infile, record, index = getGenome(g)
-    df = Genome.genbank2Dataframe(infile, cds=True)
-    summary = Genome.genbankSummary(df)
-    '''rows=[]
-    for s in record.annotations:
-        items = record.annotations[s]
-        print str(items)
-        if type(items) is types.ListType:
-            items = '\n'.join(items)
-        rows.append(TR(*[items]))
-    annotations = TABLE(*rows,_class='smalltable')'''
-    predictions={}
-    for m in methods:
-        path = os.path.join(datapath, '%s/%s' %(g,m))
-        predictions[m] = path
-    return dict(genome=g, summary=summary, record=record)
-
 @auth.requires_login()
 def genomes():
     """Display available genomes and allow upload"""
@@ -471,15 +452,6 @@ def genomes():
                      TR(TD(LABEL('file to upload')),TD(INPUT(_name='gfile',_type='file'))),
                      TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit'))),
                      _class="smalltable"), _id="myform")
-    '''uploadform = FORM(
-                   DIV(LABEL('Identifier:',_for='name'),
-                      INPUT(_name='name',_type='string',_required=True)),
-                   DIV(LABEL('Format:',_for='format'),
-                      SELECT(formats,_name='format',_type='string',_required=True)),
-                   #LABEL('file to upload:'),
-                   DIV(INPUT(_name='gfile',_type='file')),
-                    DIV(INPUT(_name='submit',_type='submit',_value='Submit')),
-                     _id="myform",_class="myform")'''
 
     if uploadform.accepts(request.vars,formname='upload_form'):
 		fname = request.vars.gfile.filename
@@ -505,9 +477,12 @@ def genome():
 
     g = request.args[0]
     if len(request.args) == 1:
-        s = getGenome(g)
-        #return genomeSummary(g)
-        return
+        gfile = getGenome(g)
+        data = Genome.genbank2Dataframe(gfile)
+        summary = Genome.genbankSummary(data)
+        data=data[data.type=='CDS']
+        data=data.set_index('locus_tag')
+        return dict(genome=g,data=data,summary=summary)
     else:
         return dict()
 
@@ -623,11 +598,12 @@ def quicksearch():
     """Non DB search just using paths"""
 
     form = SQLFORM.factory(
-              Field("prediction_id", requires=IS_IN_DB(db, 'predictions.id', '%(identifier)s')),
+              Field("identifier", requires=IS_IN_DB(db, 'predictions.id', '%(identifier)s')),
               Field("genome", requires=IS_IN_DB(db, 'genomes.id', '%(name)s',
                     zero=None,multiple=False,orderby=~db.genomes.name)),
-              Field("locus_tag", default='Rv0011c',length=10),
-              formstyle="divs")
+              Field('showall', 'boolean', label='Show all',default=False),
+              Field("OR enter locus_tag", default='Rv0011c',length=10),
+              formstyle="table3cols")
 
     if form.process().accepted:
         query1 = db.genomes.id == form.vars.genome
@@ -638,7 +614,10 @@ def quicksearch():
         genome = result1[0].name
         label = result2[0].identifier
         tag = form.vars.locus_tag
-        url = URL('default','protein',args=[label,genome,tag])
+        if form.vars.showall == 'on':
+            url = URL('default','genome',args=[genome])
+        elif tag != None:
+            url = URL('default','protein',args=[label,genome,tag])
         print url
         redirect(url)
 
@@ -810,7 +789,7 @@ def analysegenome():
 
 def plotgenome():
     print request.vars
-    g = 'MTB-H37Rv'
+
     infile, record, index = getGenome(g)
     outfile = os.path.join(request.folder,'static/data/%s.png' %g)
     img = Genome.drawGenomeMap(infile, outfile)

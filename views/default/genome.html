@@ -1,16 +1,18 @@
 {{=TITLE(genome)}}
 {{extend 'layout.html'}}
 
-{{=url}}
+<div class="row">
+<div class="span2">
+{{=H4(genome)}}
+{{=H5('features:')}}
+{{=TABLE(*summary.items(),_class='tinytable')}}
 
-<!-
-{{=H5(record.name)}}
-{{=H5(record.description)}}
-{{=H5(record.dbxrefs[0])}}
-{{=H4('feature summary: '+ genome)}}
-{{=TABLE(*summary.items(),_class='smalltable')}}
-{{=LOAD('{{=URL('default', 'plotgenome.load')}}', ['label','genome'])}}
+</div >
 
-{{=TABLE(*record.annotations.items(),_class='smalltable')}} -->
+<div class="span10 offset0">
+<div class="scrollingArea" style="width:100%">
+{{=XML(data.to_html(classes="sortable",na_rep='-'))}}
+</div>
+</div>
 
-
+</div>
