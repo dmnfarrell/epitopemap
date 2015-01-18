@@ -154,7 +154,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
     alls=0
     for m in preds:
         alls += len(preds[m].data.groupby('allele'))
-    height = 120+10*alls
+    height = 130+10*alls
     yrange = Range1d(start=1, end=alls)
     ylabels=[]
     colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
