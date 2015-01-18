@@ -100,9 +100,9 @@ Improperly formatted files may not work.
 <h3>Viewing predictions</h3>
 <p>
 Every set of predictions for a genome (or maybe just a group of protein sequences) has an identifier
- associated with it. This is simply a string identifying a set of binding predictions run with the
- same parameters, e.g. a specific set of alleles. This 'prediction id' appears in the URI of the
- protein display page, for example:
+associated with it. This is simply a string identifying a set of binding predictions run with the
+same parameters, e.g. a specific set of alleles. This 'prediction id' appears in the URI of the
+protein display page, for example:
 
 <div class="monospace">
 http://localhost/epitopemap/default/protein/results_bovine/Mbovis/Mb0012
@@ -125,9 +125,13 @@ the user to quickly visualise where epitopes might be along the sequence and com
 <p>
 <img src=../static/images/help_plots.png width=900>
 
-<h4>Cut-offs</h4>
+<h4>Cut-offs/thresholds</h4>
 
-Selection of predicted binders can be done based on the percentile rank or MHC binding affinity.
+Selection of predicted binders can be done based on the percentile rank or MHC binding affinity
+(or whatever score is a proxy for binding). It has also been shown that absolute binding
+affinity threshold correlates better with immunogenicity and MHC allele-specific thresholds
+should be used to improve correlations.
+
 For MHC-II the IEDB currently recommends making selections based on a consensus percentile rank of the top 10%.
 See {{=A('this iedb help page',_href='http://help.iedb.org/entries/23854373-Selecting-thresholds-cut-offs-for-MHC-class-I-and-II-binding-predictions')}}
 for more information.
@@ -225,8 +229,7 @@ See instructions on the github page.
 <a name="References"></a>
 
 <h3>References</h3>
-The following papers were important in the development of this application and
-provide some background to the field:
+The following papers provide some background to the field:
 
 <li>
 {{=T('''The utility and limitations of current web-available algorithms to predict
@@ -246,6 +249,15 @@ competition or synergy? Expert Review Vaccines, 11(1), 43–54. Lundegaard et al
  of epitope-based diagnostics and vaccines. BMC bioinformatics 8, 361 (2007). Bui et al. ''')}}
 {{=A('link',_href='http://www.biomedcentral.com/1471-2105/8/361')}}
 </li>
+
+<li>
+{{=T('''HLA class I alleles are associated with peptide-binding repertoires of different size,
+affinity, and immunogenicity.  Journal of Immunology 2013, 191(12):5831-5839. Paul et al.''')}}
+{{=A('link',_href='http://www.ncbi.nlm.nih.gov/pubmed/24190657')}}
+</li>
+
+
+
 
 </div>
 </div>
