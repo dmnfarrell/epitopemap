@@ -23,7 +23,8 @@ genomespath = os.path.join(request.folder,'static/data/genomes')
 #datapath = os.path.join(home,'epitopedata')
 datapath = os.path.join(request.folder,'static/results')
 import Genome, Base, Tepitope, Analysis
-methods = ['tepitope','netmhciipan','iedbmhc1','iedbmhc2','threading']
+methods = ['tepitope','netmhciipan','iedbmhc1','threading'] #'iedbmhc2'
+iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
 colors = {'tepitope':'green','netmhciipan':'red',
            'iedbmhc1':'blue','iedbmhc2':'orange','threading':'purple'}
 
@@ -635,11 +636,13 @@ def selectionForm(defaultid='results_bovine'):
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
               Field('perccutoff', 'string', label='perc. cutoff',default=.95),
+              Field('scorecutoff', 'string', label='score cutoff',default=''),
               Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
     form.element('input[name=n]')['_style'] = 'width:50px;'
     form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
+    form.element('input[name=scorecutoff]')['_style'] = 'width:50px;'
     form.element('input[name=tag]')['_style'] = 'width:130px;'
     return form
 
@@ -954,18 +957,21 @@ def submissionForm():
             TR(TD(LABEL('fasta file:',_for='fastafile')),
             TD(INPUT(_name='fastafile',_type='file',_style="width:200px;"))),
             TR(TD(LABEL('methods:',_for='methods')),
-            TD(SELECT(*methods,_name='methods',value='tepitope',_size=5,_style="width:200px;",
+            TD(SELECT(*methods,_name='methods',value='tepitope',_size=4,_style="width:200px;",
                 _multiple=True))),
+            TR(TD(LABEL('iedb method:',_for='iedbmethod')),
+            TD(SELECT(*iedbmethods,_name='iedbmethod',value='IEDB_recommended',_size=1,
+                _style="width:200px;"))),
             TR(TD(LABEL('length:',_for='length')),
-            TD(SELECT(*lengths,_name='length',value=11,_size=1,_style="width:50px;"))),
+            TD(SELECT(*lengths,_name='length',value=11,_size=1,_style="width:70px;"))),
             TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit Job'))),
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=10,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II alleles:',_for='alleles')),
-            TD(SELECT(*mhc2alleles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc2alleles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=10,_style="width:200px;",
                 _multiple=True))),_class="smalltable"),_style='float: left'),
             _id="myform")#, _class='myform')
 

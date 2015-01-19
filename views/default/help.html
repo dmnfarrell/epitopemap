@@ -101,18 +101,15 @@ Improperly formatted files may not work.
 <p>
 Every set of predictions for a genome (or maybe just a group of protein sequences) has an identifier
 associated with it. This is simply a string identifying a set of binding predictions run with the
-same parameters, e.g. a specific set of alleles. This 'prediction id' appears in the URI of the
-protein display page, for example:
+same parameters, e.g. a specific set of alleles. This 'prediction id' simply groups your predictions
+together in the same folder and can be helpful to separate your predictions from another set if
+you are working on the same proteins. So if you want a different set of predictions for the
+same proteins then create a new label/id.
 
-<div class="monospace">
-http://localhost/epitopemap/default/protein/results_bovine/Mbovis/Mb0012
-</div>
-<br>
-The protein URIs are structured so that they can be entered in the address bar if required.
-However the easiest way to find and view predictions for a known protein name is via the <b>quickview</b>
-page which has form for entering the protein details and a few other options.
-
-<h4>Searching for a protein</h4>
+<h4>Quick view</h4>
+This is the usual method for viewing results. It consists of a form on the left side which
+updates the results on the right panel of the page when the 'update' button is pressed.
+The id,genome and required protein tag must all be entered correctly.
 
 <h4>Binding prediction plots</h4>
 <p>
@@ -135,6 +132,18 @@ should be used to improve correlations.
 For MHC-II the IEDB currently recommends making selections based on a consensus percentile rank of the top 10%.
 See {{=A('this iedb help page',_href='http://help.iedb.org/entries/23854373-Selecting-thresholds-cut-offs-for-MHC-class-I-and-II-binding-predictions')}}
 for more information.
+
+<h4>Using fixed URIs</h4>
+<div class="monospace">
+http://localhost/epitopemap/default/protein/results_bovine/Mbovis/Mb0012
+</div>
+<br>
+The protein URIs are structured so that they can be entered in the address bar if required.
+However the easiest way to find and view predictions for a known protein name is via the <b>quickview</b>
+page which has form for entering the protein details and a few other options.
+
+<h4>Searching for a protein</h4>
+
 
 <a name="Genomewide"></a>
 <h3>Genome wide analysis</h3>

@@ -69,7 +69,8 @@ def getPredictions(label,genome,tag,q=0.95):
     return preds
 
 def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
-                 mhc1alleles=[], mhc2alleles=[],**kwargs):
+                 mhc1alleles=[], mhc2alleles=[], iedbmethod='IEDB_recommended',
+                 **kwargs):
     """Run predictors and save results"""
 
     applySettings()
@@ -84,16 +85,18 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
         methods = [methods]
     length=int(length)
     for method in methods:
+        P = Base.getPredictor(method)
         if method in ['iedbmhc1']:
             alleles = mhc1alleles
+            P.iedbmethod = iedbmethod
+            #P.path = iedbmhc1path
         else:
             alleles = mhc2alleles
-        P = Base.getPredictor(method)
         savepath = os.path.join(datapath, label, genome, method)
         if not os.path.exists(savepath):
             os.makedirs(savepath)
         P.predictProteins(df,length=length,names=None,alleles=alleles,
-                                label=label,save=True,path=savepath)
+                              label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
         b = Analysis.getAllBinders(savepath,method=method,n=3)
         binderfile = os.path.join(savepath, 'binders_3.csv')
