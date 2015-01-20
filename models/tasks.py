@@ -30,12 +30,12 @@ def getFeature(g,tag):
     df = df.set_index('locus_tag')
     keys = df.index
     row = df.ix[tag]
-    print row
+    #print row
     seq = row.translation
     prod = row['product']
     rec = SeqRecord(Seq(seq),id=tag,description=prod)
     fastafmt = rec.format("fasta")
-    print fastafmt
+    #print fastafmt
     feature = row.to_dict()
     ind = keys.get_loc(tag)
     previous = keys[ind-1]
@@ -53,6 +53,7 @@ def getPredictions(label,genome,tag,q=0.95):
     print path
     genomename = os.path.splitext(genome)[0]
     preds = OrderedDict()
+    cutoffs = {}
     for m in methods:
         rpath = os.path.join(path, '%s/%s' %(genomename,m))
         filename = os.path.join(rpath, tag+'.mpk')
@@ -62,11 +63,11 @@ def getPredictions(label,genome,tag,q=0.95):
         df = pd.read_msgpack(filename)
         pred = Base.getPredictor(name=m, data=df)
         #l=pred.getLength()
-        pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
+        cutoffs[m] = pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
         if pred == None:
             continue
         preds[m] = pred
-    return preds
+    return preds, cutoffs
 
 def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
                  mhc1alleles=[], mhc2alleles=[], iedbmethod='IEDB_recommended',

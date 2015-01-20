@@ -13,35 +13,38 @@
 <li><a href="#References">References</a></li>
 </div>
 
-<h4>This is a web interface for visualising T cell epitope binding predictions of
-entire proteomes.
-</h4>
-
 <div class="span9 offset0">
+
+<h3>Background</h3>
+This is a web interface for running and visualising epitope predictions (currently MHC binding) and
+allow integrated analysis for entire proteomes. The application is built on the web2py
+platform.
 
 <a name="Running predictions"></a>
 <h3>Running predictions</h3>
 
-<h4>Web interface</h4>
-<p>
-
-This application is designed to allow binding predictions to be run for multiple proteins, such as
-a whole bacterial genome. The time taken depends on the number of alleles, number of proteins and
-the prediction method. Tepitope is fastest and will take less than 15 minutes to do a genome with
-~4000 proteins for each allele. NetMHCIIpan will be noticeably slower.
+<h4>Submission page</h4>
 <p>
 The binding predictions are made by submitting jobs via the submit form.
 Jobs are queued and run in the background using the web2py scheduler system and are run consecutively. However it is possible
 to create multiple workers when web2py is started and thus multiple queues. You could do this if
 you are using a computer with multiple processors and want to make better use of them.
+<p>
+The time taken depends on the number of alleles, number of proteins and
+the prediction method. Tepitope is fastest and will take less than 15 minutes to do a genome with
+~4000 proteins for each allele. NetMHCIIpan will be noticeably slower.
 
 <h4>Methods</h4>
-The tepitope method is an internal implementation and requires no external program to run.
-netMHCIIpan must be downloaded from the website and installed on your system. The process is simple.
-The same applies for the IEDB tools. Here are the available methods:
+The Tepitope method is our own Python implementation of TEPITOPEPan and requires no external program
+to run. netMHCIIpan must be downloaded separately from the website and installed on your system.
+The process is quite simple. The same applies for the IEDB tools. Both of these tools are free
+for academic use but we do not distribute them with this app.
 
+Here are the available methods with download links for external tools:
+<p>
 <li>
 {{=A('TEPITOPEPan', _href='http://www.biokdd.fudan.edu.cn/Service/TEPITOPEpan/TEPITOPEpan.html')}}
+(NO download required).
 </li>
 <li>
 {{=A('NetMHCIIpan', _href='http://www.cbs.dtu.dk/services/NetMHCIIpan/')}}

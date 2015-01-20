@@ -1,5 +1,12 @@
-<div class="heading">
-{{=T(tag+', '+genome)}}
+<div>
+{{=H5(tag+', '+genome)}}
+<p>
 {{=T(path)}}
 {{=summary}}
+{{for c in cutoffs:}}
+{{=H5(c)}}
+<div>
+{{=TABLE(*cutoffs[c].items(),_class='tinytable')}}
+</div>
+{{pass}}
 </div>

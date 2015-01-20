@@ -152,7 +152,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
     from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
     from bokeh.plotting import Figure
 
-    alls=0
+    alls=1
     for m in preds:
         alls += len(preds[m].data.groupby('allele'))
     height = 130+10*alls
@@ -270,7 +270,7 @@ def plots():
     n = int(request.vars.n)
     kind = request.vars.kind
 
-    preds = getPredictions(label,g,tag)
+    preds,cutoffs = getPredictions(label,g,tag)
     sd=None
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
@@ -306,7 +306,7 @@ def results():
     label = request.vars.label
     g = request.vars.genome
     tag = request.vars.tag
-    preds = getPredictions(label,g,tag)
+    preds,cutoffs = getPredictions(label,g,tag)
     summary = summaryhtml(preds)
     data = {}
     for p in preds:
@@ -321,7 +321,7 @@ def binders():
     g = request.vars.genome
     tag = request.vars.tag
     n = int(request.vars.n)
-    preds = getPredictions(label,g,tag)
+    preds,cutoffs = getPredictions(label,g,tag)
     summary = summaryhtml(preds)
     b = Base.getBinders(preds,n=n)
     kys = b.keys()
@@ -351,7 +351,7 @@ def showSequence(seq,preds):
         grps = b.groupby('allele')
         for a,g in grps:
             pos=[]
-            for i in g.pos: pos.extend(range(i,i+l))
+            for i in g.pos: pos.extend(np.arange(i,i+l))
             seqhtml=[]
             for i in range(len(seq)):
                 if i in pos:
@@ -371,7 +371,7 @@ def sequence():
     n = int(request.vars.n)
     feat, fastafmt, previous, next = getFeature(g,tag)
     seq = feat.qualifiers['translation'][0]
-    preds = getPredictions(label,g,tag)
+    preds,c = getPredictions(label,g,tag)
     table = showSequence(seq,preds)
     return dict(table=table)
 
@@ -528,7 +528,7 @@ def summaryhtml(predictors):
         pred=predictors[p]
         b = pred.getPromiscuousBinders(n=2)
         rows.append(TR(pred.name, pred.cutoff, len(b)))
-    return TABLE(*rows,_class='mytable')
+    return TABLE(*rows,_class='tinytable')
 
 def download():
 
@@ -536,7 +536,7 @@ def download():
     label = request.args[0]
     g = request.args[1]
     t = request.args[2]
-    preds = getPredictions(label,g,t)
+    preds,c = getPredictions(label,g,t)
     data = [preds[p].data for p in preds]
     df = pd.concat(data)
     output = StringIO.StringIO()
@@ -635,7 +635,7 @@ def selectionForm(defaultid='results_bovine'):
               Field('tag', 'string', label='locus tag',default='Rv0011c'),
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
-              Field('perccutoff', 'string', label='perc. cutoff',default=.95),
+              Field('perccutoff', 'string', label='perc. cutoff',default=.98),
               Field('scorecutoff', 'string', label='score cutoff',default=''),
               Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
@@ -674,7 +674,7 @@ def show():
 
     if label == 'dummy':
         figure = plotEmpty()
-    preds = getPredictions(label,g,tag,cutoff)
+    preds, cutoffs = getPredictions(label,g,tag,cutoff)
 
     #if len(preds)==0:
     #    redirect(URL('error'))
@@ -706,8 +706,9 @@ def show():
     path = os.path.join(datapath, label)
     found = [(m,preds[m].getLength()) for m in preds]
     info = TABLE(*found,_class='tinytable')
+
     return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots
-                b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,
+                b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,cutoffs=cutoffs,
                 genome=g,tag=tag,label=label,info=info,path=path)
 
 def error():
@@ -870,7 +871,7 @@ def conservationanalysis():
     alnrows = alnrows[alnrows['perc_ident']>=identity]
 
     #get predictions and find in each blast record
-    preds = getPredictions(label,gname,tag,cutoff=0.95)
+    preds, cutoffs = getPredictions(label,gname,tag,cutoff=0.95)
     if not preds.has_key(method):
         return dict(res=None)
     print preds
@@ -941,6 +942,8 @@ def submissionForm():
     mhc1alleles = pi.getMHCIList()
     pii=Base.getPredictor('netmhciipan')
     mhc2alleles=pii.getAlleleList()
+    drballeles=Base.getDRBList(mhc2alleles)
+    dqpalleles = Base.getDQPList(mhc2alleles)
     tepitopealleles = Tepitope.refalleles
     lengths = [9,11,13,15]
     form = FORM(DIV(
@@ -968,11 +971,16 @@ def submissionForm():
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=10,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
                 _multiple=True))),
-            TR(TD(LABEL('MHC-II alleles:',_for='alleles')),
-            TD(SELECT(*mhc2alleles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=10,_style="width:200px;",
-                _multiple=True))),_class="smalltable"),_style='float: left'),
+            TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
+            TD(SELECT(*drballeles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=6,_style="width:200px;",
+                _multiple=True))),
+            TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
+            TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
+                _multiple=True))),
+            _class="smalltable"),_style='float: left'),
+
             _id="myform")#, _class='myform')
 
     return form
@@ -1002,7 +1010,7 @@ def test():
     l='results_bovine'
     g='MTB-H37Rv'
     tag='Rv0011c'
-    preds = getPredictions(l,g,tag)
+    preds,c = getPredictions(l,g,tag)
     #html = plotTracks(preds,tag)
     form = FORM(TABLE(
             TD(INPUT(_name='submit',_type='submit',_value='Update'))), _id="myform")
