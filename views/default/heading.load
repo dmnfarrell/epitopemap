@@ -3,9 +3,10 @@
 <p>
 {{=T(path)}}
 {{=summary}}
+{{=H5('allele specific global thresholds')}}
 {{for c in cutoffs:}}
+<div class=span2>
 {{=H5(c)}}
-<div>
 {{=TABLE(*cutoffs[c].items(),_class='tinytable')}}
 </div>
 {{pass}}

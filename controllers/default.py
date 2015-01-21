@@ -938,13 +938,15 @@ def submissionForm():
     opts1 = [OPTION(i,value=i) for i in predids]
     genomes = [p.name for p in db().select(db.genomes.ALL)]
     opts2 = [OPTION(i,value=i) for i in genomes]
-    pi=Base.getPredictor('iedbmhc1')
-    mhc1alleles = pi.getMHCIList()
-    pii=Base.getPredictor('netmhciipan')
-    mhc2alleles=pii.getAlleleList()
-    drballeles=Base.getDRBList(mhc2alleles)
+    p1 = Base.getPredictor('iedbmhc1')
+    mhc1alleles = p1.getMHCIList()
+    p2 = Base.getPredictor('netmhciipan')
+    mhc2alleles = p2.getAlleleList()
+    drballeles = Base.getDRBList(mhc2alleles)
     dqpalleles = Base.getDQPList(mhc2alleles)
-    tepitopealleles = Tepitope.refalleles
+    tepitopealleles = Tepitope.getAlleles()
+    #get all possible alleles for both MHCII methods
+    drballeles = sorted(list(set(drballeles+tepitopealleles)))
     lengths = [9,11,13,15]
     form = FORM(DIV(
             TABLE(

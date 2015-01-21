@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os,sys,types
+import os,sys,types,glob
 import ConfigParser
 import Base, Genome, Analysis
 home = os.path.expanduser("~")
@@ -96,6 +96,8 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
         savepath = os.path.join(datapath, label, genome, method)
         if not os.path.exists(savepath):
             os.makedirs(savepath)
+        else:
+            removeFiles(savepath)
         P.predictProteins(df,length=length,names=None,alleles=alleles,
                               label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
@@ -105,6 +107,12 @@ def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
 
     addPredictionstoDB(label,path=os.path.join(datapath, label))
     return dict(binders=len(b))
+
+def removeFiles(path):
+    filelist = glob.glob('*.mpk')
+    for f in filelist:
+        os.remove(f)
+    return
 
 def addPredictionstoDB(label,path):
     """Add the prediction id to the db if not present"""
