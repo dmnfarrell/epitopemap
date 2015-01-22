@@ -11,12 +11,22 @@
 float_format=lambda x: '%2.2f' % x))}}
 </div>
 
+<div class="span4">
+<div class="scrollingArea" style="width:100%">
+{{=T('Top binders')}}
+{{=XML(top.to_html(classes='sortable',escape=False,index=False,
+float_format=lambda x: '%2.2f' % x))}}
+</div>
+</div>
+<div class="span4">
 <div class="scrollingArea" style="width:100%">
 {{=T('Clusters')}}
 {{=XML(cl.to_html(classes='sortable',escape=False,index=False,
 float_format=lambda x: '%2.2f' % x))}}
 </div>
+</div>
 
+<div class="span6">
 {{=XML(plothtml)}}
-
+</div>
 {{pass}}

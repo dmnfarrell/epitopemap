@@ -730,6 +730,8 @@ def analysis():
             TD(SELECT(*methods,_name='method',value='tepitope',_style="width:150px;"))),
             TR(TD(LABEL('min alleles:',_for='n')),
             TD(INPUT(_name='n',_type='text',value=3,_style="width:50px;"))),
+            TR(TD(LABEL('perc cutoff:',_for='perccutoff')),
+            TD(INPUT(_name='perccutoff',_type='text',value='0.96',_style="width:50px;"))),
             TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Analyse'))),
             _class="smalltable"), _id="myform")
     return dict(form=form)
@@ -742,11 +744,12 @@ def analysegenome():
     label = request.vars.label
     method = request.vars.method
     n = int(request.vars.n)
+    cutoff = float(request.vars.perccutoff)
 
-    b,res,cl,fig = genomeAnalysis(label, gname, method, n)
+    b,res,top,cl,fig = genomeAnalysis(label, gname, method, n, cutoff)
     plothtml = mpld3Plot(fig)
     summary = '%s proteins with %s binders in >%s alleles' %(len(res),len(b),n)
-    return dict(res=res,cl=cl,summary=summary,plothtml=plothtml)
+    return dict(res=res,top=top,cl=cl,summary=summary,plothtml=plothtml)
 
 def plotgenome():
     print request.vars

@@ -3,8 +3,12 @@
 
 <div class="span2">
 {{=form}}
+<div class='heading'>
 <p>This page provides a global summary of the binding predictions over
-a whole genome. It may be helpful for selection of candidate proteins.
+a whole genome or set of proteins. It may be helpful for selection of candidate proteins.
+This process will take several minutes for a bacterial genome with multiple alleles.
+Results are cached for the selected cutoff/min alleles.
+</div>
 </div>
 
 <div id="resultdiv" class="span9 offset1">
@@ -22,7 +26,8 @@ jQuery('#myform').submit(function() {
 
 <script>
 jQuery('#myform').submit(function() {
-  ajax('{{=URL('default', 'analysegenome.load')}}', ['label','genome','method','n'], 'resultdiv');
+  ajax('{{=URL('default', 'analysegenome.load')}}',
+    ['label','genome','method','n','perccutoff'], 'resultdiv');
   return false;
 });
 </script>

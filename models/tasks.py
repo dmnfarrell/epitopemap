@@ -151,7 +151,7 @@ def applySettings():
         os.environ["PATH"] += os.pathsep+paths[i]
     return
 
-def genomeAnalysis(label, gname, method, n=3):
+def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
 
     path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
 
@@ -162,7 +162,7 @@ def genomeAnalysis(label, gname, method, n=3):
     if os.path.exists(binderfile):
         b = pd.read_csv(binderfile)
     else:
-        b = Analysis.getAllBinders(path,method=method,n=n)
+        b = Analysis.getAllBinders(path,method=method,n=n,cutoff=cutoff)
         b.to_csv(binderfile)
 
     P = Base.getPredictor(method)
@@ -172,7 +172,7 @@ def genomeAnalysis(label, gname, method, n=3):
     #get genome and combine data
     gfile = getGenome(gname)
     g = Genome.genbank2Dataframe(gfile, cds=True)
-    res = res.merge(g[['locus_tag','length','gene','product']],
+    res = res.merge(g[['locus_tag','length','gene','product','order']],
                             left_index=True,right_on='locus_tag')
     #add protein urls
     res['locus_tag'] = res['locus_tag'].apply(
@@ -180,20 +180,28 @@ def genomeAnalysis(label, gname, method, n=3):
     res['perc'] = res.size/res.length*100
     res = res.sort('perc',ascending=False)
     print res[:10]
-    cl = Analysis.findClusters(b, method)
 
+    clusterfile = os.path.join(path,'clusters_%s.csv' %n)
+    if os.path.exists(clusterfile):
+        cl = pd.read_csv(clusterfile)
+    else:
+        cl = Analysis.findClusters(b, method, dist=9)
+        cl.to_csv(clusterfile)
+    cl = cl[:1000]
     #get top binders in genome? plus most frequent
-    #binders = b.groupby('peptide').agg({P.scorekey:np.size})
+    top = b.groupby('peptide').agg({P.scorekey:np.mean,
+                    'name': lambda x: ','.join(list(x))}).reset_index()
+    top = top.sort(P.scorekey,ascending=P.rankascending)[:1000]
     #seabornsetup()
-    fig=plt.figure()
-    ax=fig.add_subplot(211)
-    b.hist(P.scorekey,bins=30,alpha=0.8,ax=ax)
-    ax.set_title('binder score distr')
-    ax=fig.add_subplot(212)
-    ax.set_title('coverage distr')
-    res.hist('length',bins=30,alpha=0.8,ax=ax)
+    fig=plt.figure(figsize=(6,6))
+    ax=fig.add_subplot(111)
+    #res.sort('order').plot(kind='bar',x='order',y='perc',ax=ax)
+    #ax.set_title('binder score distr')
+    #ax=fig.add_subplot(212)
+    #ax.set_title('coverage distr')
+    #res.hist('length',bins=30,alpha=0.8,ax=ax)
     plt.tight_layout()
-    return b,res,cl,fig
+    return b,res,top,cl,fig
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

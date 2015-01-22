@@ -71,6 +71,7 @@ div.scrollingArea {
     border:1px solid #b2a7a7;
     height: 450px;
     overflow: auto;
+    margin: 10px;
 }
 .scrollingArea h5 {
     font-size:14px;

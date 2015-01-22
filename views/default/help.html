@@ -55,9 +55,12 @@ Here are the available methods with download links for external tools:
 
 <h4>Selection of alleles</h4>
 <p>
-Selection of which alleles to run will be entirely dependant upon the end results required. Users
+Selection of which alleles to run will be entirely dependent upon the end results required. Users
 must have a particular goal in mind when making predictions. Simply using all alleles will NOT
 be helpful and will be very slow since there are so many human alleles.
+<p>
+Some alleles are not available for all methods and will be ignored for those methods.
+MHCII DP and DQ alleles are for netMHCIIpan only.
 
 <h4>How predictions are stored</h4>
 <p>
@@ -147,10 +150,13 @@ page which has form for entering the protein details and a few other options.
 
 <h4>Searching for a protein</h4>
 
-
 <a name="Genomewide"></a>
 <h3>Genome wide analysis</h3>
 <p>
+This interface performs an analysis of all proteins to find the top binders found in
+n alleles. A global percentage cutoff can be chosen. The result is a table that can be
+sorted according to various metrics such as the number of binders per unit length
+of each protein or the number and density of epitope clusters.
 
 <a name="Conservation"></a>
 <h3>Epitope conservation analysis</h3>
