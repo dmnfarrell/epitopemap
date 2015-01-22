@@ -13,6 +13,7 @@ response.meta.author = 'Damien Farrell <damien.farrell@ucd.ie>'
 response.meta.description = 'Epitopemap application'
 response.meta.generator = 'Web2py Web Framework'
 response.meta.copyright = 'Copyright 2014-'
+response.meta.version = '1.0'
 
 ## your http://google.com/analytics id
 response.google_analytics_id = None

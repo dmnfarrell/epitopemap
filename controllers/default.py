@@ -270,7 +270,7 @@ def plots():
     n = int(request.vars.n)
     kind = request.vars.kind
 
-    preds,cutoffs = getPredictions(label,g,tag)
+    preds,cutoffs = getPredictions(label,g,tag,0.98)
     sd=None
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
@@ -636,13 +636,12 @@ def selectionForm(defaultid='results_bovine'):
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
               Field('perccutoff', 'string', label='perc. cutoff',default=.98),
-              Field('scorecutoff', 'string', label='score cutoff',default=''),
               Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
     form.element('input[name=n]')['_style'] = 'width:50px;'
     form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
-    form.element('input[name=scorecutoff]')['_style'] = 'width:50px;'
+    #form.element('input[name=scorecutoff]')['_style'] = 'width:50px;'
     form.element('input[name=tag]')['_style'] = 'width:130px;'
     return form
 
@@ -744,52 +743,10 @@ def analysegenome():
     method = request.vars.method
     n = int(request.vars.n)
 
-    #need getpath method?
-    path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
-    print path
-    if not os.path.exists(path):
-       return dict(res=None)
-    binderfile = os.path.join(path,'binders_%s.csv' %n)
-    print binderfile
-    if os.path.exists(binderfile):
-        b = pd.read_csv(binderfile)
-    else:
-        b = Analysis.getAllBinders(path,method=method,n=n)
-        b.to_csv(binderfile)
-
-    print b[:10]
-    P = Base.getPredictor(method)
-    res = b.groupby('name').agg({P.scorekey:[np.mean,np.size,np.max]}).sort()
-    res.columns = res.columns.get_level_values(1)
-
-    #get genome and combine data
-    gfile = getGenome(gname)
-    #gfile = os.path.join(genomespath,'%s.gb' %gname) #fetch from db instead of this
-    g = Genome.genbank2Dataframe(gfile, cds=True)
-    print g[:2]
-    res = res.merge(g[['locus_tag','length','gene','product']],
-                            left_index=True,right_on='locus_tag')
-    #add protein urls
-    res['locus_tag'] = res['locus_tag'].apply(
-        lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],extension=''))))
-    res['perc'] = res.size/res.length*100
-    res = res.sort('perc',ascending=False)
-
-    #get top binders in genome? plus most frequent
-    binders = b.groupby('peptide').agg({P.scorekey:np.size})
-
-    seabornsetup()
-    fig=plt.figure()
-    ax=fig.add_subplot(211)
-    b.hist(P.scorekey,bins=30,alpha=0.8,ax=ax)
-    ax.set_title('binder score distr')
-    ax=fig.add_subplot(212)
-    ax.set_title('coverage distr')
-    res.hist('length',bins=30,alpha=0.8,ax=ax)
-    plt.tight_layout()
+    b,res,cl,fig = genomeAnalysis(label, gname, method, n)
     plothtml = mpld3Plot(fig)
     summary = '%s proteins with %s binders in >%s alleles' %(len(res),len(b),n)
-    return dict(res=res,summary=summary,plothtml=plothtml)
+    return dict(res=res,cl=cl,summary=summary,plothtml=plothtml)
 
 def plotgenome():
     print request.vars
@@ -801,7 +758,7 @@ def plotgenome():
     print img
     return dict(img=img)
 
-def conservationAnalysisForm(defaultid='results_bovine'):
+def conservationAnalysisForm(defaultid='test'):
 
     defaultg = 'MTB-H37Rv'
     predids = [p.identifier for p in db().select(db.predictions.ALL)]
@@ -976,7 +933,7 @@ def submissionForm():
             TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
-            TD(SELECT(*drballeles,_name='mhc2alleles',value='HLA-DRB1*0101',_size=6,_style="width:200px;",
+            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=6,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
@@ -995,7 +952,7 @@ def submit():
         session.flash = 'form accepted'
         #print request.vars
         task = scheduler.queue_task('runPredictor', pvars=request.vars,
-                    start_time=request.now, timeout=3600)
+                                    start_time=request.now, timeout=3600)
         redirect(URL('jobsubmitted', vars={'id':task.id}))
     elif form.errors:
         response.flash = 'form has errors'
