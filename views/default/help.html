@@ -9,6 +9,7 @@
 <li><a href="#Genomewide">Genome wide analysis</a></li>
 <li><a href="#Conservation">Eptiope conservation</a></li>
 <li><a href="#Administration">Administration</a></li>
+<li><a href="#Installation">Installation</a></li>
 <li><a href="#Programmers">For Programmers</a></li>
 <li><a href="#References">References</a></li>
 </div>
@@ -153,10 +154,24 @@ page which has form for entering the protein details and a few other options.
 <a name="Genomewide"></a>
 <h3>Genome wide analysis</h3>
 <p>
-This interface performs an analysis of all proteins to find the top binders found in
-n alleles. A global percentage cutoff can be chosen. The result is a table that can be
-sorted according to various metrics such as the number of binders per unit length
-of each protein or the number and density of epitope clusters.
+This page performs an analysis of all proteins to find the top binders found in
+n alleles. A global percentage cutoff can also be chosen. This allows a quick overview
+of the proteins with highest percentage of binders and those with epitopes that cluster
+together. The result is a table that can be sorted according to various metrics
+such as the number of binders per unit length of each protein or the number and
+density of epitope clusters.
+<p>
+Explanation of results table columns:
+<li>mean: mean score for binders in that protein</li>
+<li>size: number of binders found in protein</li>
+<li>amax: max score</li>
+<li>length: length of protein</li>
+<li>order: order in genome annotation (for genbank files)</li>
+<li>perc: percentage of binders per protein length</li>
+<li>density: highest density epitope cluster found</li>
+<p>
+<p>
+Two additional tables showing the top peptides and clusters are also produced.
 
 <a name="Conservation"></a>
 <h3>Epitope conservation analysis</h3>
@@ -170,7 +185,10 @@ set of sequences can be chosen based on a desired identity cutoff or taxon speci
 example, the sequences may constitute all orthologs within a bacterial species or just a set of
 strains.
 
-<h5>BLAST options</h5>
+<h4>Results</h4>
+<p>
+
+<h4>BLAST options</h4>
 Our method uses the NCBI online Blast service to retrieve orthologous matches. By default
 all matches are retrieved with an expect value lower than 10 and the sequences can then be
 filtered by percentage identity. It may be preferable or necessary to refine blast queries
@@ -233,12 +251,32 @@ with a new id. Therefore this menu is normally only used to delete old predictio
 should then be deleted manually from the filesystem.
 
 <h4>Starting the server</h4>
+The server is started by typing the following command from inside the web2py folder:
 <div class="monospace">
 sudo python web2py.py -i localhost -a 123 -p 80 -K epitopemap -X
 </div>
+There is a
+
+<a name="Installation"></a>
+<h3>Installation</h3>
+<p>
+This application has been built and tested on the Ubuntu Linux operating system. web2py and the
+required Python dependencies will run on both Windows and Mac OS also but these have not
+been tested yet. We therefore recommend running this web app on a linux os.
+
+The following steps:
+<li>Install web2py, which can be downloaded
+{{=A('here',_href='http://www.web2py.com/init/default/download')}}</li>
+<li>Unzip web2py and place in the folder where you wish to run it</li>
+<li>Download the epitopemap files
+{{=A('here',_href='https://github.com/dmnfarrell/epitopemap/zipball/master')}} </li>
+<li>Unzip epitopemap and place under web2py/applications </li>
+<li>Start the server as outlined above</li>
+<li>Go to http://localhost/epitopemap in your browser</li>
 
 <a name="Programmers"></a>
 <h3>For Programmers</h3>
+<h4>Python mhcpredict library</h4>
 The Python Predictor class and other modules used to implement the prediction routines are available
 at {{=A('this github page',_href='https://github.com/dmnfarrell/mhcpredict')}}. It is possible
 to implement other prediction methods using these classes and add them to the web application.
@@ -273,8 +311,6 @@ competition or synergy? Expert Review Vaccines, 11(1), 43–54. Lundegaard et al
 affinity, and immunogenicity.  Journal of Immunology 2013, 191(12):5831-5839. Paul et al.''')}}
 {{=A('link',_href='http://www.ncbi.nlm.nih.gov/pubmed/24190657')}}
 </li>
-
-
 
 
 </div>

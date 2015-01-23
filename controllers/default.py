@@ -747,7 +747,8 @@ def analysegenome():
     cutoff = float(request.vars.perccutoff)
 
     b,res,top,cl,fig = genomeAnalysis(label, gname, method, n, cutoff)
-    plothtml = mpld3Plot(fig)
+    #plothtml = mpld3Plot(fig)
+    plothtml=''
     summary = '%s proteins with %s binders in >%s alleles' %(len(res),len(b),n)
     return dict(res=res,top=top,cl=cl,summary=summary,plothtml=plothtml)
 
@@ -781,12 +782,12 @@ def conservationAnalysisForm(defaultid='test'):
             TR(TD(LABEL('min alleles:',_for='n')),
             TD(INPUT(_name='n',_type='text',value=3,_style="width:50px;"))),
             TR(TD(LABEL('min identity:',_for='identity')),
-            TD(INPUT(_name='identity',value=60,_style="width:50px;"))),
+            TD(INPUT(_name='identity',value=70,_style="width:50px;"))),
             TR(TD(),TD('BLAST options')),
             TR(TD(LABEL('entrez query:',_for='entrezquery')),
             TD(TEXTAREA(_name='entrezquery',value='',_style="height:100px;width:150px;"))),
             TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit'))),
-            _class="smalltable"), _id="myform", hidden=dict(width=950))
+            _class="smalltable"), _id="myform", hidden=dict(width=850))
     return form
 
 def conservation():
@@ -805,67 +806,7 @@ def conservationanalysis():
     tag = request.vars.tag
     identity = int(request.vars.identity)
     equery = request.vars.entrezquery
-    res = {}
-    blastpath = os.path.join(request.folder, 'static/data/blast')
-    cachedfile = os.path.join(blastpath, '%s_%s.csv' %(gname,tag))
-    print cachedfile
-    if os.path.exists(cachedfile):
-        alnrows = pd.read_csv(cachedfile,index_col=0)
-    else:
-        gfile = getGenome(gname)
-        g = Genome.genbank2Dataframe(gfile, cds=True)
-        prot = g[g['locus_tag']==tag]
-        if len(prot)==0:
-            return dict(res=None)
-        seq = prot.translation.squeeze()
-        print tag,seq
-        #run this in background?
-        alnrows = Analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
-        if alnrows is None:
-            alnrows=None
-        #cache results for re-use
-        alnrows.to_csv(cachedfile)
-
-    alnrows.drop_duplicates(subset=['sequence'], inplace=True)
-    #limit to identity level
-    alnrows = alnrows[alnrows['perc_ident']>=identity]
-
-    #get predictions and find in each blast record
-    preds, cutoffs = getPredictions(label,gname,tag,cutoff=0.95)
-    if not preds.has_key(method):
-        return dict(res=None)
-    print preds
-    pred = preds[method]
-    length = pred.getLength()
-    pb = pred.getPromiscuousBinders(n=n)
-    print pb
-    summary=[]
-    '''def getConserved(x):
-        found = [a.seq.find(x) for a in for i,a in alnrows.iterrows()]
-        return found'''
-    for i,a in alnrows.iterrows():
-        seq = a.sequence
-        found = [seq.find(j) for j in pb.peptide]
-        summary.append(found)
-
-    s = pd.DataFrame(summary,columns=pb.peptide,index=alnrows.accession)
-    s = s.replace(-1,np.nan)
-
-    summary = s.count()
-    pb=pb.set_index('peptide')
-    pb['conserved'] = s.count()
-    pb['perc_cons'] = pb.conserved/len(alnrows)
-    pb=pb.sort('conserved',ascending=False).drop(['core','name'],1)
-    summary = pb
-    print pb[:10]
-
-    seabornsetup()
-    fig=plt.figure(figsize=(6,6))
-    ax=fig.add_subplot(111)
-    pb.plot('perc_cons','allele',kind='scatter',alpha=0.8,ax=ax,grid=False)
-    ax.set_title('binder score distr')
-    plt.tight_layout()
-    plothtml = mpld3Plot(fig)
+    res, alnrows, summary = conservationAnalysis(**request.vars)
 
     '''def markepitopes(x):
         new=[]
@@ -886,7 +827,7 @@ def conservationanalysis():
     #alnrows['epitopes'] = alnrows.apply(markepitopes,1)
     alnrows = Analysis.getAlignedBlastResults(alnrows)
     alnrows = Analysis.setBlastLink(alnrows)
-
+    plothtml=''
     return dict(res=res,alnrows=alnrows,summary=summary,plothtml=plothtml)
 
 def submissionForm():

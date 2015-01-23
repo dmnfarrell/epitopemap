@@ -174,34 +174,107 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     g = Genome.genbank2Dataframe(gfile, cds=True)
     res = res.merge(g[['locus_tag','length','gene','product','order']],
                             left_index=True,right_on='locus_tag')
-    #add protein urls
-    res['locus_tag'] = res['locus_tag'].apply(
-        lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],extension=''))))
-    res['perc'] = res.size/res.length*100
+    res['perc'] = res['size']/res.length*100
     res = res.sort('perc',ascending=False)
-    print res[:10]
-
     clusterfile = os.path.join(path,'clusters_%s.csv' %n)
     if os.path.exists(clusterfile):
         cl = pd.read_csv(clusterfile)
     else:
         cl = Analysis.findClusters(b, method, dist=9)
-        cl.to_csv(clusterfile)
-    cl = cl[:1000]
+        cl.set_index('name').to_csv(clusterfile)
+
+    if cl is not None:
+        gc = cl.groupby('name').agg({'density':np.max})
+        res = res.merge(gc,left_on='locus_tag',right_index=True,how='left')
+    res = res.fillna('-')
     #get top binders in genome? plus most frequent
-    top = b.groupby('peptide').agg({P.scorekey:np.mean,
+    top = b.groupby('peptide').agg({P.scorekey:np.max,'allele':np.max,
                     'name': lambda x: ','.join(list(x))}).reset_index()
     top = top.sort(P.scorekey,ascending=P.rankascending)[:1000]
+    #add protein urls to results table
+    res['locus_tag'] = res['locus_tag'].apply(
+        lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],extension=''))))
     #seabornsetup()
-    fig=plt.figure(figsize=(6,6))
-    ax=fig.add_subplot(111)
+    #fig=plt.figure(figsize=(6,6))
+    #ax=fig.add_subplot(111)
     #res.sort('order').plot(kind='bar',x='order',y='perc',ax=ax)
     #ax.set_title('binder score distr')
     #ax=fig.add_subplot(212)
     #ax.set_title('coverage distr')
     #res.hist('length',bins=30,alpha=0.8,ax=ax)
-    plt.tight_layout()
+    #plt.tight_layout()
+    fig=None
     return b,res,top,cl,fig
+
+def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None, **kwargs):
+    """Conservation analysis"""
+
+    n=int(n)
+    identity=int(identity)
+    res = {}
+    blastpath = os.path.join(request.folder, 'static/data/blast')
+    cachedfile = os.path.join(blastpath, '%s_%s.csv' %(genome,tag))
+
+    if os.path.exists(cachedfile):
+        print 'using %s' %cachedfile
+        alnrows = pd.read_csv(cachedfile,index_col=0)
+    else:
+        gfile = getGenome(genome)
+        g = Genome.genbank2Dataframe(gfile, cds=True)
+        prot = g[g['locus_tag']==tag]
+        if len(prot)==0:
+            return dict(res=None)
+        seq = prot.translation.head(1).squeeze()
+        #print tag,seq
+        #run this in background?
+        alnrows = Analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
+        if alnrows is None:
+            alnrows=None
+        #cache blast results for re-use
+        alnrows.to_csv(cachedfile)
+
+    alnrows.drop_duplicates(subset=['sequence'], inplace=True)
+    #limit to identity level
+    alnrows = alnrows[alnrows['perc_ident']>=identity]
+    if len(alnrows)==0:
+        return
+    #get predictions and find in each blast record
+    preds, cutoffs = getPredictions(label,genome,tag,q=0.96)
+    if not preds.has_key(method):
+        return dict(res=None)
+    #print preds
+    pred = preds[method]
+    length = pred.getLength()
+    pb = pred.getPromiscuousBinders(n=n)
+    print pb
+    summary=[]
+    #find conserved binders
+
+    for i,a in alnrows.iterrows():
+        seq = a.sequence
+        found = [seq.find(j) for j in pb.peptide]
+        print i
+        summary.append(found)
+
+    s = pd.DataFrame(summary,columns=pb.peptide,index=alnrows.accession)
+    s = s.replace(-1,np.nan)
+
+    summary = s.count()
+    pb=pb.set_index('peptide')
+    pb['conserved'] = s.count()
+    pb['perc_cons'] = pb.conserved/len(alnrows)
+    pb=pb.sort('conserved',ascending=False).drop(['core','name'],1)
+    summary = pb
+    #print pb[:10]
+
+    '''seabornsetup()
+    fig=plt.figure(figsize=(6,6))
+    ax=fig.add_subplot(111)
+    pb.plot('perc_cons','allele',kind='scatter',alpha=0.8,ax=ax,grid=False)
+    ax.set_title('binder score distr')
+    plt.tight_layout()
+    plothtml = mpld3Plot(fig)'''
+    return res, alnrows, summary
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

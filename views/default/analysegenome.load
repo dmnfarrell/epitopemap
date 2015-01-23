@@ -21,7 +21,7 @@ float_format=lambda x: '%2.2f' % x))}}
 <div class="span4">
 <div class="scrollingArea" style="width:100%">
 {{=T('Clusters')}}
-{{=XML(cl.to_html(classes='sortable',escape=False,index=False,
+{{=XML(cl[:1000].to_html(classes='sortable',escape=False,index=False,
 float_format=lambda x: '%2.2f' % x))}}
 </div>
 </div>
