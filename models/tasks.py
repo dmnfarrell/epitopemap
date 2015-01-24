@@ -29,6 +29,8 @@ def getFeature(g,tag):
     df = df.drop_duplicates('locus_tag')
     df = df.set_index('locus_tag')
     keys = df.index
+    if tag not in keys:
+        return
     row = df.ix[tag]
     #print row
     seq = row.translation
@@ -214,7 +216,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     #get predictions
     preds, cutoffs = getPredictions(label,genome,tag,q=0.96)
     if not preds.has_key(method):
-        return
+        return 1
     if os.path.exists(cachedfile):
         print 'using %s' %cachedfile
         alnrows = pd.read_csv(cachedfile,index_col=0)
@@ -236,8 +238,8 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     alnrows.drop_duplicates(subset=['sequence'], inplace=True)
     #limit to identity level
     alnrows = alnrows[alnrows['perc_ident']>=identity]
-    if len(alnrows)==0:
-        return
+    if len(alnrows) == 0:
+        return 2
 
     pred = preds[method]
     length = pred.getLength()

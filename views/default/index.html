@@ -12,8 +12,8 @@
 
 {{actions = (('Quick view','quickview'),('Submit job','submit'),
 	      ('Add genome','genomes'), ('Genome analysis','analysis'),
-	      ('Epitope conservation','conservation'), ('Advanced search','search'),
-	      ('Admin','admin'), ('Citation','citation') ) }}
+	      ('Epitope conservation','conservation'),
+	      ('Configuration','admin'), ('Citation','citation') ) }}
 
 {{for a in actions:}}
 <li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>

@@ -433,7 +433,7 @@ def protein():
     if items != None:
         feature, fastafmt, previous, next = items
     else:
-        raise HTTP(404, "No such genome available %s" %g)
+        raise HTTP(404, "No such feature %s available in genome %s" %(tag,g))
         return
 
     result = dict(label=label,tag=tag,genome=g,n=n,
@@ -602,27 +602,30 @@ def quicksearch():
               Field("identifier", requires=IS_IN_DB(db, 'predictions.id', '%(identifier)s')),
               Field("genome", requires=IS_IN_DB(db, 'genomes.id', '%(name)s',
                     zero=None,multiple=False,orderby=~db.genomes.name)),
-              Field('showall', 'boolean', label='Show all',default=False),
-              Field("OR enter locus_tag", default='Rv0011c',length=10),
+              #Field('showall', 'boolean', label='Show all',default=False),
+              Field('tag',label="locus_tag", default='Rv0011c',length=10),
               formstyle="table3cols")
+    form.element('input[name=tag]')['_style'] = 'width:220px;'
 
     if form.process().accepted:
+        #print form.vars
         query1 = db.genomes.id == form.vars.genome
         result1 = db(query1).select()
-        query2 = db.predictions.id == form.vars.prediction_id
+        query2 = db.predictions.id == form.vars.identifier
         result2 = db(query2).select()
-        print form.vars.genome
         genome = result1[0].name
         label = result2[0].identifier
-        tag = form.vars.locus_tag
-        if form.vars.showall == 'on':
-            url = URL('default','genome',args=[genome])
-        elif tag != None:
-            url = URL('default','protein',args=[label,genome,tag])
+        tag = form.vars.tag
+        #if form.vars.showall == 'on':
+        #    url = URL('default','genome',args=[genome])
+        items = getFeature(genome,tag)
+        if items == None:
+            response.flash = 'no such protein %s in %s' %(tag,genome)
+            return form
+        url = URL('default','protein',args=[label,genome,tag])
         print url
         redirect(url)
 
-        #response.flash = 'no such prediction id or genome name'
     return form
 
 def selectionForm(defaultid='results_bovine'):
@@ -809,12 +812,15 @@ def conservationanalysis():
     equery = request.vars.entrezquery
     retval = conservationAnalysis(**request.vars)
     msg=''
-    if retval == None:
+    if retval == 1:
         msg =  'No predictions found for %s with method %s.' %(tag,method)
+        return dict(res=None,msg=msg)
+    elif retval == 2:
+        msg =  'No BLAST results at >%s%% sequence identity.' %identity
         return dict(res=None,msg=msg)
     else:
         res, alnrows, summary, fig = retval
-    #alnrows['epitopes'] = alnrows.apply(markepitopes,1)
+
     alnrows = Analysis.getAlignedBlastResults(alnrows)
     alnrows = Analysis.setBlastLink(alnrows)
     plothtml = mpld3Plot(fig)
@@ -957,9 +963,8 @@ def admin():
 
 def about():
     msg = 'About this page'
-    fp = os.path.join(request.folder,'static/docs','about.txt')
-    f = open(fp,'r')
-    msg = f.readlines()
+    #fp = os.path.join(request.folder,'static/docs','about.txt')
+
     return dict(msg=msg)
 
 def citation():
