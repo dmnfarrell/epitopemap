@@ -177,8 +177,10 @@ Two additional tables showing the top peptides and clusters are also produced.
 <h3>Epitope conservation analysis</h3>
 <p>
 This interface allows you to get an estimate of how well conserved a predicted epitope is across a
-given set of sequences at a certain identity level. Orthologs for the sequence are first retrieved
-using an online blast. This can take up to several minutes but results are saved for later use.
+given set of sequences at a certain identity level.
+<p>
+Orthologs for the sequence are first retrieved using an online blast. This can take
+up to several minutes but results are saved for later use.
 Once the alignments are returned the conservation of each epitope can be calculated. This is
 defined as the percentage of sequences where the epitope is present out of the total aligned. The
 set of sequences can be chosen based on a desired identity cutoff or taxon specification. For
@@ -260,9 +262,11 @@ There is a
 <a name="Installation"></a>
 <h3>Installation</h3>
 <p>
-This application has been built and tested on the Ubuntu Linux operating system. web2py and the
-required Python dependencies will run on both Windows and Mac OS also but these have not
-been tested yet. We therefore recommend running this web app on a linux os.
+This application has been built and tested on the
+{{=A('Ubuntu Linux ',_href='http://www.ubuntu.com/')}}
+operating system. web2py and the required Python dependencies are available on both
+Windows and Mac OSX also but these have not been properly tested yet.
+We therefore <i> currently recommend running this web app on a linux OS.</i>
 
 The following steps:
 <li>Install web2py, which can be downloaded
@@ -273,6 +277,19 @@ The following steps:
 <li>Unzip epitopemap and place under web2py/applications </li>
 <li>Start the server as outlined above</li>
 <li>Go to http://localhost/epitopemap in your browser</li>
+<p>
+
+<h4>Python dependencies</h4>
+Setup currently requires you to install the Python libraries yourself. This is
+a cleaner approach rather than providing them with the application and is simple
+on linux.
+<p>
+On Ubuntu type the following on the command line to install the Python modules:
+<div class="monospace">
+sudo apt-get install python-pip
+<br>
+sudo pip install numpy pandas matplotlib biopython
+</div>
 
 <a name="Programmers"></a>
 <h3>For Programmers</h3>
@@ -311,7 +328,6 @@ competition or synergy? Expert Review Vaccines, 11(1), 43–54. Lundegaard et al
 affinity, and immunogenicity.  Journal of Immunology 2013, 191(12):5831-5839. Paul et al.''')}}
 {{=A('link',_href='http://www.ncbi.nlm.nih.gov/pubmed/24190657')}}
 </li>
-
 
 </div>
 </div>

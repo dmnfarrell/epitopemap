@@ -1,10 +1,16 @@
 <script src="{{=URL('static','js/sorttable.js')}}"></script>
 {{if res is None:}}
-{{=T('No predictions found for %s. You need to submit the job and wait for results.' %request.vars.tag)}}
+{{=T(msg)}}
 {{else:}}
 {{=DIV(H5('summary: %s' %request.vars.tag),_class="divheader")}}
-<div >
+
+<div class="row">
+<div class="span4 level2">
 {{=XML(summary.to_html(classes="tinytable"))}}
+</div>
+<div class="span4 level2">
+{{=XML(plothtml)}}
+</div>
 </div>
 
 {{=DIV(H5('blast results: %s records >%s%% identity ' %(len(alnrows),request.vars.identity)),

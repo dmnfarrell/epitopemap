@@ -57,7 +57,7 @@ def getPredictions(label,genome,tag,q=0.96):
     for m in methods:
         rpath = os.path.join(path, '%s/%s' %(genomename,m))
         filename = os.path.join(rpath, tag+'.mpk')
-        print filename
+        #print filename
         if not os.path.exists(filename):
             continue
         df = pd.read_msgpack(filename)
@@ -69,7 +69,7 @@ def getPredictions(label,genome,tag,q=0.96):
         preds[m] = pred
     return preds, cutoffs
 
-def runPredictor(label,genome,newlabel='',names='',methods='tepitope',length=11,
+def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11,
                  mhc1alleles=[], drballeles=[], dpqalleles=[],
                  iedbmethod='IEDB_recommended',  **kwargs):
     """Run predictors and save results"""
@@ -118,10 +118,6 @@ def addPredictionstoDB(label,path):
     """Add the prediction id to the db if not present"""
     db.predictions.insert(identifier=label,description='',user='')
     return
-
-def getOrthologs(seq):
-    df = Analysis.getOrthologs(seq)
-    return df
 
 def getSeqDepot(seq):
     """Fetch seqdepot annotation for sequence"""
@@ -215,6 +211,10 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     blastpath = os.path.join(request.folder, 'static/data/blast')
     cachedfile = os.path.join(blastpath, '%s_%s.csv' %(genome,tag))
 
+    #get predictions
+    preds, cutoffs = getPredictions(label,genome,tag,q=0.96)
+    if not preds.has_key(method):
+        return
     if os.path.exists(cachedfile):
         print 'using %s' %cachedfile
         alnrows = pd.read_csv(cachedfile,index_col=0)
@@ -225,7 +225,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
         if len(prot)==0:
             return dict(res=None)
         seq = prot.translation.head(1).squeeze()
-        #print tag,seq
+        print tag,seq
         #run this in background?
         alnrows = Analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
         if alnrows is None:
@@ -238,25 +238,18 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     alnrows = alnrows[alnrows['perc_ident']>=identity]
     if len(alnrows)==0:
         return
-    #get predictions and find in each blast record
-    preds, cutoffs = getPredictions(label,genome,tag,q=0.96)
-    if not preds.has_key(method):
-        return dict(res=None)
-    #print preds
+
     pred = preds[method]
     length = pred.getLength()
     pb = pred.getPromiscuousBinders(n=n)
-    print pb
-    summary=[]
+    f=[]
     #find conserved binders
-
     for i,a in alnrows.iterrows():
         seq = a.sequence
         found = [seq.find(j) for j in pb.peptide]
-        print i
-        summary.append(found)
+        f.append(found)
 
-    s = pd.DataFrame(summary,columns=pb.peptide,index=alnrows.accession)
+    s = pd.DataFrame(f,columns=pb.peptide,index=alnrows.accession)
     s = s.replace(-1,np.nan)
 
     summary = s.count()
@@ -267,14 +260,15 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     summary = pb
     #print pb[:10]
 
-    '''seabornsetup()
-    fig=plt.figure(figsize=(6,6))
+    #seabornsetup()
+    fig=plt.figure(figsize=(5,5))
     ax=fig.add_subplot(111)
     pb.plot('perc_cons','allele',kind='scatter',alpha=0.8,ax=ax,grid=False)
-    ax.set_title('binder score distr')
+
+    #ax.set_title('')
     plt.tight_layout()
-    plothtml = mpld3Plot(fig)'''
-    return res, alnrows, summary
+
+    return res, alnrows, summary, fig
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

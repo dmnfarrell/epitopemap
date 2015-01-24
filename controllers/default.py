@@ -797,6 +797,7 @@ def conservation():
     return dict(form=form)
 
 def conservationanalysis():
+    """Analysis of epitope conservation"""
 
     pd.set_option('max_colwidth', 3000)
     label = request.vars.label
@@ -806,29 +807,18 @@ def conservationanalysis():
     tag = request.vars.tag
     identity = int(request.vars.identity)
     equery = request.vars.entrezquery
-    res, alnrows, summary = conservationAnalysis(**request.vars)
-
-    '''def markepitopes(x):
-        new=[]
-        ungap = x.seq.replace('-','')
-        found = [ungap.find(s) for s in list(pb.peptide)]
-        print ungap
-        print found
-        f = [[i for i in range(j,j+9)] for j in found if j!=-1]
-        found = list(set(itertools.chain(*f)))
-        for i in range(len(x.seq)):
-            if i in found:
-                span = '<span style="background-color:#99CCFF">%s</span>' %x.seq[i]
-            else:
-                span = '<span>%s</span>' %x.seq[i]
-            new.append(span)
-        return ''.join(new)'''
-
+    retval = conservationAnalysis(**request.vars)
+    msg=''
+    if retval == None:
+        msg =  'No predictions found for %s with method %s.' %(tag,method)
+        return dict(res=None,msg=msg)
+    else:
+        res, alnrows, summary, fig = retval
     #alnrows['epitopes'] = alnrows.apply(markepitopes,1)
     alnrows = Analysis.getAlignedBlastResults(alnrows)
     alnrows = Analysis.setBlastLink(alnrows)
-    plothtml=''
-    return dict(res=res,alnrows=alnrows,summary=summary,plothtml=plothtml)
+    plothtml = mpld3Plot(fig)
+    return dict(res=res,alnrows=alnrows,summary=summary,plothtml=plothtml,msg=msg)
 
 def submissionForm():
     """Form for job submission"""
@@ -895,7 +885,7 @@ def submit():
     if form.process().accepted:
         session.flash = 'form accepted'
         #print request.vars
-        task = scheduler.queue_task('runPredictor', pvars=request.vars,
+        task = scheduler.queue_task('runPredictors', pvars=request.vars,
                                     start_time=request.now, timeout=3600)
         redirect(URL('jobsubmitted', vars={'id':task.id}))
     elif form.errors:
@@ -979,4 +969,6 @@ def help():
     msg = T('')
     return dict(msg=msg)
 
+def tablesorter():
+    return dict()
 
