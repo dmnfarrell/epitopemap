@@ -10,8 +10,8 @@
 {{=BEAUTIFY(response._vars)}}
 {{pass}}
 
-{{actions = (('Quick view','quickview'),('Submit job','submit'),
-	      ('Add genome','genomes'), ('Genome analysis','analysis'),
+{{actions = (('View predictions','quickview'),('Submit job','submit'),
+	      ('Manage genomes','genomes'), ('Genome analysis','analysis'),
 	      ('Epitope conservation','conservation'),
 	      ('Configuration','admin'), ('Citation','citation') ) }}
 
@@ -23,11 +23,12 @@
 
 
 <h3>Quick search</h3>
-<small>Use if you already know the genome/tag</small>
+<small>You can browse locus tag names via 'Manage genomes' page.</small>
 <table class='smalltable'><tr><td>
 {{=searchform}}
 </td></tr>
 </table>
+
 
 {{block right_sidebar}}
 
@@ -35,6 +36,25 @@
 {{=IMG(_src=URL('static/images','front_image.png'),_width=500)}}
 </div>
 
-
 {{end}}
+
+<div id='plotdiv' class='span8'>
+</div>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'plots.load')}}',
+  ['label','genome','tag','width','n'], 'plotdiv');
+  return false;
+});
+</script>
+
+<script>
+jQuery('#myform').submit(function() {
+  $( ".span8" ).empty();
+  $("#plotdiv").html('<div class="ajax-loader"><img src=../static/images/ajax-loader.gif ></div>')
+  return false;
+});
+</script>
+
 

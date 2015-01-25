@@ -214,7 +214,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     cachedfile = os.path.join(blastpath, '%s_%s.csv' %(genome,tag))
 
     #get predictions
-    preds, cutoffs = getPredictions(label,genome,tag,q=0.96)
+    preds, cutoffs = getPredictions(label,genome,tag,q=0.97)
     if not preds.has_key(method):
         return 1
     if os.path.exists(cachedfile):
@@ -236,27 +236,44 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
         alnrows.to_csv(cachedfile)
 
     alnrows.drop_duplicates(subset=['sequence'], inplace=True)
-    #limit to identity level
-    alnrows = alnrows[alnrows['perc_ident']>=identity]
-    if len(alnrows) == 0:
-        return 2
+
 
     pred = preds[method]
     length = pred.getLength()
     pb = pred.getPromiscuousBinders(n=n)
-    f=[]
-    #find conserved binders
-    for i,a in alnrows.iterrows():
-        seq = a.sequence
-        found = [seq.find(j) for j in pb.peptide]
-        f.append(found)
 
-    s = pd.DataFrame(f,columns=pb.peptide,index=alnrows.accession)
-    s = s.replace(-1,np.nan)
+    def getConserved(pb,alnrows):
+        #find conserved binders
+        f=[]
+        for i,a in alnrows.iterrows():
+            seq = a.sequence
+            found = [seq.find(j) for j in pb.peptide]
+            f.append(found)
+        s = pd.DataFrame(f,columns=pb.peptide,index=alnrows.accession)
+        s = s.replace(-1,np.nan)
+        res = s.count()
+        return res
 
-    summary = s.count()
-    pb=pb.set_index('peptide')
-    pb['conserved'] = s.count()
+    def findConservedwithIdentity(alnrows,pb):
+        vals=[]
+        for i in np.arange(0,100,10):
+            x = alnrows[alnrows['perc_ident']>=i]
+            s = getConserved(pb,x)/len(x)
+            s.name=i
+            vals.append(s)
+        df = pd.DataFrame(vals)
+        print df
+        return df
+
+    stats = findConservedwithIdentity(alnrows,pb)
+    #limit to current identity level
+    alnrows = alnrows[alnrows['perc_ident']>=identity]
+    if len(alnrows) == 0:
+        return 2
+    found = getConserved(pb,alnrows)
+
+    pb = pb.set_index('peptide')
+    pb['conserved'] = found
     pb['perc_cons'] = pb.conserved/len(alnrows)
     pb=pb.sort('conserved',ascending=False).drop(['core','name'],1)
     summary = pb
@@ -265,9 +282,10 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     #seabornsetup()
     fig=plt.figure(figsize=(5,5))
     ax=fig.add_subplot(111)
-    pb.plot('perc_cons','allele',kind='scatter',alpha=0.8,ax=ax,grid=False)
-
-    #ax.set_title('')
+    stats.plot(ax=ax,grid=False,lw=1.5)
+    plt.legend(loc=2,prop={'size':9})
+    ax.set_ylabel('percentage cons.')
+    ax.set_title('conservation vs identity')
     plt.tight_layout()
 
     return res, alnrows, summary, fig

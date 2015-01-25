@@ -228,7 +228,6 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
     plot.xaxis.major_label_text_font_style = "bold"
     plot.ygrid.grid_line_color = None
     plot.xaxis.major_label_orientation = np.pi/4
-    #legend()
 
     js,html = embedPlot(plot) #new method
     #print html
@@ -259,18 +258,19 @@ def plots():
     if label == 'dummy':
         figure = plotEmpty()
         return dict(figure=figure)
-
     if request.vars.width == None:
         width = 820
     else:
         width = int(request.vars.width)
-
     g = request.vars.genome
     tag = request.vars.tag
-    n = int(request.vars.n)
-    kind = request.vars.kind
+    if request.vars.n == None:
+        n=3
+    else:
+        n = int(request.vars.n)
+    perccutoff=0.97 #int(request.vars.perccutoff)
 
-    preds,cutoffs = getPredictions(label,g,tag,0.98)
+    preds,cutoffs = getPredictions(label,g,tag,perccutoff)
     sd=None
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
@@ -465,11 +465,11 @@ def genomes():
     db.genomes.id.readable=False
     query=((db.genomes.id>0))
     default_sort_order=[db.genomes.id]
+    links=[lambda row: A('browse',_href=URL('genome', args=row.name))]
     grid = SQLFORM.grid(query=query,  orderby=default_sort_order,
                 create=False, deletable=True, maxtextlength=350, paginate=35,
                 details=True, csv=False, ondelete=myondelete,
-                editable=auth.has_membership('editor_group'),
-                _class='myform')
+                editable=auth.has_membership('editor_group'),links=links)
 
     return dict(grid=grid,form=uploadform)
 
@@ -599,32 +599,25 @@ def quicksearch():
     """Non DB search just using paths"""
 
     form = SQLFORM.factory(
-              Field("identifier", requires=IS_IN_DB(db, 'predictions.id', '%(identifier)s')),
-              Field("genome", requires=IS_IN_DB(db, 'genomes.id', '%(name)s',
-                    zero=None,multiple=False,orderby=~db.genomes.name)),
-              #Field('showall', 'boolean', label='Show all',default=False),
-              Field('tag',label="locus_tag", default='Rv0011c',length=10),
-              formstyle="table3cols")
+              Field('label',requires=IS_IN_DB(db, 'predictions.identifier',zero=None,
+                    multiple=False),default=1,label='id'),
+              Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
+                    multiple=False),default=1,label='genome'),
+              Field('tag', 'string', label='locus tag',default='Rv0011c',length=10),
+              hidden=dict(width=550,n=2),
+              formstyle="table3cols",_id='myform')
     form.element('input[name=tag]')['_style'] = 'width:220px;'
 
     if form.process().accepted:
-        #print form.vars
-        query1 = db.genomes.id == form.vars.genome
-        result1 = db(query1).select()
-        query2 = db.predictions.id == form.vars.identifier
-        result2 = db(query2).select()
-        genome = result1[0].name
-        label = result2[0].identifier
-        tag = form.vars.tag
-        #if form.vars.showall == 'on':
-        #    url = URL('default','genome',args=[genome])
+        session.flash = 'form accepted'
+        '''tag = form.vars.tag
         items = getFeature(genome,tag)
         if items == None:
             response.flash = 'no such protein %s in %s' %(tag,genome)
             return form
         url = URL('default','protein',args=[label,genome,tag])
         print url
-        redirect(url)
+        redirect(url)'''
 
     return form
 

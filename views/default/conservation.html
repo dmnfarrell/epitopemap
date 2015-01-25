@@ -37,7 +37,6 @@ jQuery('#myform').submit(function() {
 
 <script>
 jQuery('#myform').submit(function() {
-  $('#myform.width').val(250);
   ajax('{{=URL('default', 'plots.load')}}', ['label','genome','tag','n','width'], 'plotdiv');
   return false;
 });
