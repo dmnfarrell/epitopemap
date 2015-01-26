@@ -73,7 +73,7 @@ def getPredictions(label,genome,tag,q=0.96):
 
 def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11,
                  mhc1alleles=[], drballeles=[], dpqalleles=[],
-                 iedbmethod='IEDB_recommended',  **kwargs):
+                 iedbmethod='IEDB_recommended', **kwargs):
     """Run predictors and save results"""
 
     applySettings()
@@ -204,7 +204,8 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     fig=None
     return b,res,top,cl,fig
 
-def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None, **kwargs):
+def conservationAnalysis(label, genome, method, tag, identity, n=3,
+                         equery=None, **kwargs):
     """Conservation analysis"""
 
     n=int(n)
@@ -217,6 +218,11 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     preds, cutoffs = getPredictions(label,genome,tag,q=0.97)
     if not preds.has_key(method):
         return 1
+    pred = preds[method]
+    length = pred.getLength()
+    pb = pred.getPromiscuousBinders(n=n)
+    if len(pb)==0:
+        return 1
     if os.path.exists(cachedfile):
         print 'using %s' %cachedfile
         alnrows = pd.read_csv(cachedfile,index_col=0)
@@ -228,7 +234,6 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
             return dict(res=None)
         seq = prot.translation.head(1).squeeze()
         print tag,seq
-        #run this in background?
         alnrows = Analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
         if alnrows is None:
             alnrows=None
@@ -236,11 +241,6 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
         alnrows.to_csv(cachedfile)
 
     alnrows.drop_duplicates(subset=['sequence'], inplace=True)
-
-
-    pred = preds[method]
-    length = pred.getLength()
-    pb = pred.getPromiscuousBinders(n=n)
 
     def getConserved(pb,alnrows):
         #find conserved binders
@@ -256,7 +256,8 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
 
     def findConservedwithIdentity(alnrows,pb):
         vals=[]
-        for i in np.arange(0,100,10):
+        lowest = alnrows.perc_ident.min().round()
+        for i in np.arange(lowest,100,10):
             x = alnrows[alnrows['perc_ident']>=i]
             s = getConserved(pb,x)/len(x)
             s.name=i
@@ -287,8 +288,8 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3, equery=None,
     ax.set_ylabel('percentage cons.')
     ax.set_title('conservation vs identity')
     plt.tight_layout()
-
     return res, alnrows, summary, fig
+
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

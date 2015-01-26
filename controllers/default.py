@@ -23,7 +23,7 @@ genomespath = os.path.join(request.folder,'static/data/genomes')
 #datapath = os.path.join(home,'epitopedata')
 datapath = os.path.join(request.folder,'static/results')
 import Genome, Base, Tepitope, Analysis
-methods = ['tepitope','netmhciipan','iedbmhc1','threading'] #'iedbmhc2'
+methods = ['tepitope','netmhciipan','iedbmhc1']#,'threading'] #'iedbmhc2'
 iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
 colors = {'tepitope':'green','netmhciipan':'red',
            'iedbmhc1':'blue','iedbmhc2':'orange','threading':'purple'}
@@ -789,9 +789,19 @@ def conservationAnalysisForm(defaultid='test'):
 def conservation():
     """Analysis of epitope conservation"""
 
-    form = conservationAnalysisForm('results_test')
+    form = conservationAnalysisForm()
+    '''if form.process().accepted:
+        session.flash = 'form accepted'
+        pvars = {'seq':seq,'hitlist_size':400,'equery':equery}
+        task = scheduler.queue_task('doTask', #pvars=request.vars,
+                                    immediate=True, timeout=300)
+        print task.id
+        status = scheduler.task_status(task.id, output=True)
+        result = status.result
+        print status'''
     return dict(form=form)
 
+@auth.requires_login()
 def conservationanalysis():
     """Analysis of epitope conservation"""
 
@@ -806,7 +816,7 @@ def conservationanalysis():
     retval = conservationAnalysis(**request.vars)
     msg=''
     if retval == 1:
-        msg =  'No predictions found for %s with method %s.' %(tag,method)
+        msg =  'No predictions found for %s with method %s with n=%s.' %(tag,method,n)
         return dict(res=None,msg=msg)
     elif retval == 2:
         msg =  'No BLAST results at >%s%% sequence identity.' %identity
@@ -817,7 +827,11 @@ def conservationanalysis():
     alnrows = Analysis.getAlignedBlastResults(alnrows)
     alnrows = Analysis.setBlastLink(alnrows)
     plothtml = mpld3Plot(fig)
-    return dict(res=res,alnrows=alnrows,summary=summary,plothtml=plothtml,msg=msg)
+    url =  A('direct link to these results', _href=URL('default','conservationanalysis.load',
+                vars={'label':label,'genome':gname,'tag':tag,'method':method,'n':n,
+                 'identity':identity,'equery':equery},extension=''))
+    return dict(res=res,alnrows=alnrows,summary=summary,plothtml=plothtml,
+                msg=msg,permlink=url)
 
 def submissionForm():
     """Form for job submission"""
@@ -880,17 +894,19 @@ def submissionForm():
 @auth.requires_login()
 def submit():
     """Process job for submission and queue job"""
+
     form = submissionForm()
     if form.process().accepted:
         session.flash = 'form accepted'
         #print request.vars
         task = scheduler.queue_task('runPredictors', pvars=request.vars,
-                                    start_time=request.now, timeout=3600)
+                                    immediate=True, timeout=4600)
         redirect(URL('jobsubmitted', vars={'id':task.id}))
     elif form.errors:
         response.flash = 'form has errors'
     return dict(form=form)
 
+@auth.requires_login()
 def jobsubmitted():
     """Get details of a submitted job"""
 
