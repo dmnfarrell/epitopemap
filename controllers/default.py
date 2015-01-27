@@ -148,16 +148,17 @@ def plotAnnotations(plot,annotation):
         plot.text(x,y-1, text=text, angle=0)
     return
 
-def plotBCell(plot,pred):
+def plotBCell(plot,pred,height):
     """Line plot of b cell predictions - no allele stuff"""
     from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
     from bokeh.plotting import Figure
-    h=20
     x = pred.data.Position
     print pred.data[:20]
     #source = ColumnDataSource(data=dict(x=x,y=y))
     y=pred.data.Score
-    y = (y+abs(min(y)))*h/(max(y)-min(y))
+    h=height
+    y = y+abs(min(y))
+    y=y*(h/max(y))
     plot.line(x, y, size=12, line_color="gray", line_width=3, alpha=0.7)
 
     return
@@ -184,7 +185,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
 
     h=1
     if bcell != None:
-        plotBCell(plot, bcell)
+        plotBCell(plot, bcell, alls)
     if seqdepot != None:
         plotAnnotations(plot,seqdepot)
         h=4
@@ -697,7 +698,7 @@ def show():
     sd=None
     if request.vars.annotation == 'on':
         sd = getSeqDepot(seq)['t']
-    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd)
+    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd,bcell=bcell)
     #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)
     #get all results into tables
