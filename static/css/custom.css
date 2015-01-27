@@ -199,6 +199,26 @@ div.monospace {
 }
 .sortable tr:nth-child(even){ background-color:#F7F7F7; }
 
+.genometable {
+    font-family:monospace;
+	font-size:12px;
+}
+}.genometable td{
+    border-spacing: 0;
+    border:0px solid #b2a7a7;
+    border-width:0px 0px 0px 0px;
+    word-wrap: break-word;
+}
+.genometable th{
+    background-color: #F1F1F1;
+    border-width:0px 0px 0px 0px;
+    word-wrap: break-word;
+    width: 150px;
+}
+
+.genometable tr:nth-child(even){ background-color:#F7F7F7; }
+
+
 .formelement label {
     display: inline-block;
     width: 150px;

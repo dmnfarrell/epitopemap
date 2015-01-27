@@ -23,8 +23,10 @@ genomespath = os.path.join(request.folder,'static/data/genomes')
 #datapath = os.path.join(home,'epitopedata')
 datapath = os.path.join(request.folder,'static/results')
 import Genome, Base, Tepitope, Analysis
-methods = ['tepitope','netmhciipan','iedbmhc1']#,'threading'] #'iedbmhc2'
+methods = ['tepitope','netmhciipan','iedbmhc1','bcell']#,'threading'] #'iedbmhc2'
 iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
+bcellmethods = ['Chou-Fasman', 'Emini', 'Karplus-Schulz',
+                'Kolaskar-Tongaonkar', 'Parker', 'Bepipred']
 colors = {'tepitope':'green','netmhciipan':'red',
            'iedbmhc1':'blue','iedbmhc2':'orange','threading':'purple'}
 
@@ -146,7 +148,21 @@ def plotAnnotations(plot,annotation):
         plot.text(x,y-1, text=text, angle=0)
     return
 
-def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
+def plotBCell(plot,pred):
+    """Line plot of b cell predictions - no allele stuff"""
+    from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
+    from bokeh.plotting import Figure
+    h=20
+    x = pred.data.Position
+    print pred.data[:20]
+    #source = ColumnDataSource(data=dict(x=x,y=y))
+    y=pred.data.Score
+    y = (y+abs(min(y)))*h/(max(y)-min(y))
+    plot.line(x, y, size=12, line_color="gray", line_width=3, alpha=0.7)
+
+    return
+
+def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
     """Plot epitopes as parallel tracks"""
 
     from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
@@ -167,6 +183,8 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None):
            background_fill="#FAFAFA")
 
     h=1
+    if bcell != None:
+        plotBCell(plot, bcell)
     if seqdepot != None:
         plotAnnotations(plot,seqdepot)
         h=4
@@ -270,7 +288,7 @@ def plots():
         n = int(request.vars.n)
     perccutoff=0.97 #int(request.vars.perccutoff)
 
-    preds,cutoffs = getPredictions(label,g,tag,perccutoff)
+    preds,bcell,cutoffs = getPredictions(label,g,tag,perccutoff)
     sd=None
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
@@ -278,7 +296,7 @@ def plots():
         print seq
         sd = getSeqDepot(seq)['t']
 
-    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd)
+    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd,bcell=bcell)
     return dict(figure=figure,preds=preds)
 
 def scoredistplots(preds):
@@ -306,7 +324,7 @@ def results():
     label = request.vars.label
     g = request.vars.genome
     tag = request.vars.tag
-    preds,cutoffs = getPredictions(label,g,tag)
+    preds,bcell,cutoffs = getPredictions(label,g,tag)
     summary = summaryhtml(preds)
     data = {}
     for p in preds:
@@ -321,7 +339,7 @@ def binders():
     g = request.vars.genome
     tag = request.vars.tag
     n = int(request.vars.n)
-    preds,cutoffs = getPredictions(label,g,tag)
+    preds,bcell,cutoffs = getPredictions(label,g,tag)
     summary = summaryhtml(preds)
     b = Base.getBinders(preds,n=n)
     kys = b.keys()
@@ -371,7 +389,7 @@ def sequence():
     n = int(request.vars.n)
     feat, fastafmt, previous, next = getFeature(g,tag)
     seq = feat.qualifiers['translation'][0]
-    preds,c = getPredictions(label,g,tag)
+    preds,bcell,c = getPredictions(label,g,tag)
     table = showSequence(seq,preds)
     return dict(table=table)
 
@@ -536,7 +554,7 @@ def download():
     label = request.args[0]
     g = request.args[1]
     t = request.args[2]
-    preds,c = getPredictions(label,g,t)
+    preds,bcell,c = getPredictions(label,g,t)
     data = [preds[p].data for p in preds]
     df = pd.concat(data)
     output = StringIO.StringIO()
@@ -669,7 +687,7 @@ def show():
 
     if label == 'dummy':
         figure = plotEmpty()
-    preds, cutoffs = getPredictions(label,g,tag,cutoff)
+    preds,bcell,cutoffs = getPredictions(label,g,tag,cutoff)
 
     #if len(preds)==0:
     #    redirect(URL('error'))
@@ -868,8 +886,11 @@ def submissionForm():
             TR(TD(LABEL('methods:',_for='methods')),
             TD(SELECT(*methods,_name='methods',value='tepitope',_size=4,_style="width:200px;",
                 _multiple=True))),
-            TR(TD(LABEL('iedb method:',_for='iedbmethod')),
+            TR(TD(LABEL('mhc1 method:',_for='iedbmethod')),
             TD(SELECT(*iedbmethods,_name='iedbmethod',value='IEDB_recommended',_size=1,
+                _style="width:200px;"))),
+            TR(TD(LABEL('bcell method:',_for='bcellmethod')),
+            TD(SELECT(*bcellmethods,_name='bcellmethod',value='Bepipred',_size=1,
                 _style="width:200px;"))),
             TR(TD(LABEL('length:',_for='length')),
             TD(SELECT(*lengths,_name='length',value=11,_size=1,_style="width:70px;"))),
@@ -880,7 +901,7 @@ def submissionForm():
             TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
-            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=6,_style="width:200px;",
+            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
@@ -918,7 +939,7 @@ def test():
     l='results_bovine'
     g='MTB-H37Rv'
     tag='Rv0011c'
-    preds,c = getPredictions(l,g,tag)
+    preds,bcell,c = getPredictions(l,g,tag)
     #html = plotTracks(preds,tag)
     form = FORM(TABLE(
             TD(INPUT(_name='submit',_type='submit',_value='Update'))), _id="myform")

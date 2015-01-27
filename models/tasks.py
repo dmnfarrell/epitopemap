@@ -56,23 +56,23 @@ def getPredictions(label,genome,tag,q=0.96):
     genomename = os.path.splitext(genome)[0]
     preds = OrderedDict()
     cutoffs = {}
+    bcell = None
     for m in methods:
         rpath = os.path.join(path, '%s/%s' %(genomename,m))
         filename = os.path.join(rpath, tag+'.mpk')
-        #print filename
         if not os.path.exists(filename):
             continue
         df = pd.read_msgpack(filename)
         pred = Base.getPredictor(name=m, data=df)
-        #l=pred.getLength()
-        cutoffs[m] = pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
-        if pred == None:
+        if m == 'bcell':
+            bcell = pred
             continue
+        cutoffs[m] = pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
         preds[m] = pred
-    return preds, cutoffs
+    return preds, bcell, cutoffs
 
 def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11,
-                 mhc1alleles=[], drballeles=[], dpqalleles=[],
+                 mhc1alleles=[], drballeles=[], dpqalleles=[], bcellmethod='Bepipred',
                  iedbmethod='IEDB_recommended', **kwargs):
     """Run predictors and save results"""
 
@@ -93,6 +93,10 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
             alleles = mhc1alleles
             P.iedbmethod = iedbmethod
             #P.path = iedbmhc1path
+        elif method == 'bcell':
+            P.iedbmethod = bcellmethod
+            alleles = None
+            #P.path = iedbbcellpath
         else:
             alleles = drballeles + dpqalleles
         savepath = os.path.join(datapath, label, genome, method)
@@ -104,11 +108,12 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
                               label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
         b = Analysis.getAllBinders(savepath,method=method,n=3)
-        binderfile = os.path.join(savepath, 'binders_3.csv')
-        b.to_csv(binderfile)
+        if b is not None:
+            binderfile = os.path.join(savepath, 'binders_3.csv')
+            b.to_csv(binderfile)
 
     addPredictionstoDB(label,path=os.path.join(datapath, label))
-    return dict(binders=len(b))
+    return dict(proteins=len(df))
 
 def removeFiles(path):
     filelist = glob.glob('*.mpk')

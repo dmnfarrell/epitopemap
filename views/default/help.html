@@ -257,18 +257,20 @@ The server is started by typing the following command from inside the web2py fol
 <div class="monospace">
 sudo python web2py.py -i localhost -a 123 -p 80 -K epitopemap -X
 </div>
-There is a
+-i web address
+-p is the port
+-K specifies the scheduler
 
 <a name="Installation"></a>
 <h3>Installation</h3>
 <p>
 This application has been built and tested on the
 {{=A('Ubuntu Linux ',_href='http://www.ubuntu.com/')}}
-operating system. web2py and the required Python dependencies are available on both
-Windows and Mac OSX also but these have not been properly tested yet.
+operating system (version 14.04). web2py and the required Python dependencies are also
+available on both Windows and Mac OSX also though these have not been fully tested yet.
 We therefore <i> currently recommend running this web app on a linux OS.</i>
 
-The following steps:
+Follow these steps:
 <li>Install web2py, which can be downloaded
 {{=A('here',_href='http://www.web2py.com/init/default/download')}}</li>
 <li>Unzip web2py and place in the folder where you wish to run it</li>
@@ -281,8 +283,9 @@ The following steps:
 
 <h4>Python dependencies</h4>
 Setup currently requires you to install the Python libraries yourself. This is
-a cleaner approach rather than providing them with the application and is simple
-on linux.
+a cleaner approach than providing them with the application and is now simple
+on linux. In addition we recommend you use easy_install or pip to install the packages
+rather than the OS package manager (e.g. apt-get) but both methods should work.
 <p>
 On Ubuntu type the following on the command line to install the Python modules:
 <div class="monospace">
