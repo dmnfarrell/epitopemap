@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import bokeh
-from bokeh.plotting import *
+#from bokeh.plotting import *
 home = os.path.expanduser("~")
 genomespath = os.path.join(request.folder,'static/data/genomes')
 #datapath = os.path.join(home,'epitopedata')
@@ -150,8 +150,7 @@ def plotAnnotations(plot,annotation):
 
 def plotBCell(plot,pred,height):
     """Line plot of b cell predictions - no allele stuff"""
-    from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
-    from bokeh.plotting import Figure
+
     x = pred.data.Position
     print pred.data[:20]
     #source = ColumnDataSource(data=dict(x=x,y=y))
@@ -166,7 +165,7 @@ def plotBCell(plot,pred,height):
 def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
     """Plot epitopes as parallel tracks"""
 
-    from bokeh.objects import Range1d,HoverTool,FactorRange,Grid,GridPlot
+    from bokeh.models import Range1d,HoverTool,FactorRange,Grid,GridPlot,ColumnDataSource
     from bokeh.plotting import Figure
 
     alls=1
@@ -256,7 +255,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
 def plotEmpty(width=850):
     """Plot an empty plot"""
 
-    from bokeh.objects import Range1d
+    from bokeh.models import Range1d
     plot = figure(title='',plot_width=width, plot_height=10,
            y_range=Range1d(start=1, end=100),
            tools="xpan, xwheel_zoom, resize, hover, reset",
@@ -949,7 +948,7 @@ def test():
 def bokehtest():
     """Bokeh test"""
 
-    from bokeh.objects import Range1d, HoverTool, GridPlot
+    from bokeh.models import Range1d, HoverTool, GridPlot
     from bokeh.plotting import Figure
     N = 100
     x = np.random.random(size=N) * 100
