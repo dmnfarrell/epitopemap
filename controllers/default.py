@@ -54,6 +54,7 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
+    auth.settings.registration_requires_approval = True
     return dict(form=auth())
 
 def download():
@@ -158,11 +159,11 @@ def plotBCell(plot,pred,height):
     h=height
     y = y+abs(min(y))
     y=y*(h/max(y))
-    plot.line(x, y, size=12, line_color="gray", line_width=3, alpha=0.7)
+    plot.line(x, y, line_color="gray", line_width=2, alpha=0.7)
 
     return
 
-def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
+def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcell=None):
     """Plot epitopes as parallel tracks"""
 
     from bokeh.models import Range1d,HoverTool,FactorRange,Grid,GridPlot,ColumnDataSource
@@ -171,7 +172,9 @@ def plotTracks(preds,tag,n=3,title=None,width=820,seqdepot=None,bcell=None):
     alls=1
     for m in preds:
         alls += len(preds[m].data.groupby('allele'))
-    height = 130+10*alls
+    if height==None:
+        height = 130+10*alls
+
     yrange = Range1d(start=1, end=alls)
     ylabels=[]
     colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
@@ -280,15 +283,25 @@ def plots():
         width = 820
     else:
         width = int(request.vars.width)
+    if request.vars.height != None:
+        height = int(request.vars.height)
+    else:
+        height = None
+
     g = request.vars.genome
     tag = request.vars.tag
     if request.vars.n == None:
         n=3
     else:
         n = int(request.vars.n)
-    perccutoff=0.97 #int(request.vars.perccutoff)
+    if request.vars.perccutoff != None:
+        perccutoff=float(request.vars.perccutoff)
+    else:
+        perccutoff=0.97
 
     preds,bcell,cutoffs = getPredictions(label,g,tag,perccutoff)
+    if len(preds)==0 or preds==None:
+        return dict(error=True)
     sd=None
     if request.vars.annotation == 'on':
         feature, fastafmt, previous, next = getFeature(g,tag)
@@ -296,8 +309,8 @@ def plots():
         print seq
         sd = getSeqDepot(seq)['t']
 
-    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd,bcell=bcell)
-    return dict(figure=figure,preds=preds)
+    figure = plotTracks(preds,tag,n=n,width=width,height=height,seqdepot=sd,bcell=bcell)
+    return dict(figure=figure,preds=preds,error=False)
 
 def scoredistplots(preds):
     """Score distribution plots"""
@@ -622,13 +635,13 @@ def quicksearch():
               Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
                     multiple=False),default=1,label='genome'),
               Field('tag', 'string', label='locus tag',default='Rv0011c',length=10),
-              hidden=dict(width=550,n=2),
+              hidden=dict(width=550,height=250,n=2),
               formstyle="table3cols",_id='myform')
     form.element('input[name=tag]')['_style'] = 'width:220px;'
 
-    if form.process().accepted:
+    '''if form.process().accepted:
         session.flash = 'form accepted'
-        '''tag = form.vars.tag
+        tag = form.vars.tag
         items = getFeature(genome,tag)
         if items == None:
             response.flash = 'no such protein %s in %s' %(tag,genome)
@@ -689,8 +702,8 @@ def show():
         figure = plotEmpty()
     preds,bcell,cutoffs = getPredictions(label,g,tag,cutoff)
 
-    #if len(preds)==0:
-    #    redirect(URL('error'))
+    if len(preds)==0:
+        redirect(URL('error'))
 
     feat, fastafmt, previous, next = getFeature(g,tag)
     seq = feat['translation']

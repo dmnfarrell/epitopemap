@@ -39,7 +39,7 @@ def _():
     app = request.application
     ctr = request.controller
     # useful links to internal and external resources
-    response.menu+=[
+    '''response.menu+=[
         (SPAN('web2py',_style='color:yellow'),False, None, [
                 (T('This App'),False,URL('admin','default','design/%s' % app), [
                         (T('Controller'),False,
@@ -59,7 +59,7 @@ def _():
                         (T('About'),False, URL('admin','default','about/' + app)),
                         ])
                 ]
-         )]
+         )]'''
 _()
 
 if "auth" in locals(): auth.wikimenu()

@@ -220,7 +220,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
     cachedfile = os.path.join(blastpath, '%s_%s.csv' %(genome,tag))
 
     #get predictions
-    preds, cutoffs = getPredictions(label,genome,tag,q=0.97)
+    preds, bcell, cutoffs = getPredictions(label,genome,tag,q=0.97)
     if not preds.has_key(method):
         return 1
     pred = preds[method]

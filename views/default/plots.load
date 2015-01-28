@@ -1,4 +1,8 @@
+{{if error==True:}}
+{{=H5('no such predictions')}}
+{{else:}}
 <div>
 {{=XML(figure)}}
 </div>
 <div style="clear:both"></div>
+{{pass}}

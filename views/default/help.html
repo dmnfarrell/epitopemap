@@ -45,14 +45,14 @@ Here are the available methods with download links for external tools:
 <p>
 <li>
 {{=A('TEPITOPEPan', _href='http://www.biokdd.fudan.edu.cn/Service/TEPITOPEpan/TEPITOPEpan.html')}}
-(NO download required).
+(Implemented internally, so NO download required).
 </li>
 <li>
 {{=A('NetMHCIIpan', _href='http://www.cbs.dtu.dk/services/NetMHCIIpan/')}}
 </li>
-<li>{{=A('IEDB tools', _href='http://tools.immuneepitope.org/main/html/tcell_tools.html')}}</li>
-</li>
-<li>Threading (an untested method) </li>
+<li>{{=A('IEDB MHCI tools', _href='http://tools.immuneepitope.org/mhci/download/')}}</li>
+
+<li>{{=A('IEDB BCell tools', _href='http://tools.immuneepitope.org/bcell/download/')}} </li>
 
 <h4>Selection of alleles</h4>
 <p>
@@ -280,6 +280,12 @@ Follow these steps:
 <li>Start the server as outlined above</li>
 <li>Go to http://localhost/epitopemap in your browser</li>
 <p>
+
+<h4>Other software</h4>
+The ncbi-blast+ tools and clustalw are needed for conservation analysis. On Ubuntu type:
+<div class="monospace">
+sudo apt-get install ncbi-blast+ clustalw
+</div>
 
 <h4>Python dependencies</h4>
 Setup currently requires you to install the Python libraries yourself. This is

@@ -44,7 +44,7 @@
 <script>
 jQuery('#myform').submit(function() {
   ajax('{{=URL('default', 'plots.load')}}',
-  ['label','genome','tag','width','n'], 'plotdiv');
+  ['label','genome','tag','width','height','n'], 'plotdiv');
   return false;
 });
 </script>
