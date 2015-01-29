@@ -19,6 +19,18 @@ def getGenome(name):
     filename = os.path.join(request.folder,'uploads',record.file)
     return filename
 
+def getTagbyGene(g,gene):
+    fname = getGenome(g)
+    df = Genome.genbank2Dataframe(fname, cds=True)
+    df = df.drop_duplicates('locus_tag')
+    df = df.set_index('locus_tag')
+    #if gene name provided we try to override the locus_tag
+    t = df[df.gene==gene].index
+    if len(t)>0:
+        return t[0]
+    else:
+        return
+
 def getFeature(g,tag):
     """Get gene feature from stored genbank file"""
 

@@ -300,6 +300,11 @@ def plots():
         return dict(figure=figure)
     g = request.vars.genome
     tag = request.vars.tag
+    gene = request.vars.gene
+    if gene != None:
+        t = getTagbyGene(g,gene) #override tag with gene name if provided
+        if t != None:
+            tag = t
     if request.vars.width == None:
         width = 820
     else:
@@ -321,9 +326,8 @@ def plots():
         return dict(error=True)
     sd=None
     if request.vars.annotation == 'on':
-        feature, fastafmt, previous, next = getFeature(g,tag)
-        seq = feature.qualifiers['translation'][0]
-        print seq
+        feat, fastafmt, previous, next = getFeature(g,tag)
+        seq = feat['translation']
         sd = getSeqDepot(seq)['t']
 
     if request.vars.kind == None:
@@ -566,10 +570,10 @@ def myondelete(table, id):
     form = FORM.confirm('Are you sure?')
     print form
     if form.accepted:
-    #response.flash = "I don't like your submission"
+        response.flash = "I don't like your submission"
         print table, id
         #db(db.predictions.id==id).delete()
-    return
+    return form
 
 def summaryhtml(predictors):
     """Summary table of predictions"""
@@ -655,32 +659,22 @@ def quicksearch():
                     multiple=False),default=1,label='id'),
               Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
                     multiple=False),default=1,label='genome'),
-              Field('tag', 'string', label='locus tag',default='Rv0011c',length=10),
+              Field('tag', 'string', label='locus tag',default='',length=10),
+              Field('gene', 'string', label='gene',default='dnaA',length=10),
               hidden=dict(width=550,height=250,n=2),
               formstyle="table3cols",_id='myform')
-    form.element('input[name=tag]')['_style'] = 'width:220px;'
-
-    '''if form.process().accepted:
-        session.flash = 'form accepted'
-        tag = form.vars.tag
-        items = getFeature(genome,tag)
-        if items == None:
-            response.flash = 'no such protein %s in %s' %(tag,genome)
-            return form
-        url = URL('default','protein',args=[label,genome,tag])
-        print url
-        redirect(url)'''
-
+    form.element('input[name=tag]')['_style'] = 'width:210px;'
+    form.element('input[name=gene]')['_style'] = 'width:210px;'
     return form
 
-def selectionForm(defaultid='results_bovine'):
+def selectionForm():
 
     form = SQLFORM.factory(
               Field('label',requires=IS_IN_DB(db, 'predictions.identifier',zero=None,
                     multiple=False),default=1,label='id'),
               Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
                     multiple=False),default=1,label='genome'),
-              Field('tag', 'string', label='locus tag',default='Rv0011c'),
+              Field('tag', 'string', label='locus tag',default=''),
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
               Field('perccutoff', 'string', label='perc. cutoff',default=.98),
@@ -915,8 +909,6 @@ def submissionForm():
             TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:200px;"))),
             TR(TD(LABEL('locus tags:',_for='names')),
             TD(INPUT(_name='names',_type='text',value="",_style="width:200px;"))),
-            TR(TD(LABEL('fasta file:',_for='fastafile')),
-            TD(INPUT(_name='fastafile',_type='file',_style="width:200px;"))),
             TR(TD(LABEL('methods:',_for='methods')),
             TD(SELECT(*methods,_name='methods',value='tepitope',_size=4,_style="width:200px;",
                 _multiple=True))),
@@ -932,10 +924,10 @@ def submissionForm():
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=7,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
-            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
+            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=7,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",

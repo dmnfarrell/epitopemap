@@ -115,7 +115,7 @@ Genbank format files for an organism can be found on the
 
 <p>
 The program will use the locus tags in the genbank file for each protein. If these are not
-available the gene names are used. For fasta inputs the identifier following the ">" is used.
+available the gene names are used as locus tags. For fasta inputs the identifier following the ">" is used.
 <b>Genbank or embl format is recommended</b> since fasta files can have non-standard or confusing
 ids like gi|31563518|ref|NP_852610.1| which is not very user friendly. Fasta files do not contain
 features present in genbank format such as gene product or location that can be useful for
@@ -132,8 +132,16 @@ together in the same folder and can be helpful to separate your predictions from
 you are working on the same proteins. So if you want a different set of predictions for the
 same proteins then create a new label/id.
 
+<h4>Quick search</h4>
+This form on the home page allows you to get a quick preview and see if a particular
+protein is present and has some predictions made. If there are results available a small
+plot will be displayed in the page. Either the locus tag or gene name can be
+used but only the tag is unique. If there are proteins with the same gene name in the source
+annotation then only the first one is used here. The gene name overrides the locus tag in this
+form.
+
 <h4>Quick view</h4>
-This is the usual method for viewing results. It consists of a form on the left side which
+This is the usual interface for viewing results. It consists of a form on the left side which
 updates the results on the right panel of the page when the 'update' button is pressed.
 The id,genome and required protein tag must all be entered correctly.
 
@@ -201,13 +209,17 @@ given set of sequences at a certain identity level.
 Orthologs for the sequence are first retrieved using an online blast. This can take
 up to several minutes but results are saved for later use.
 Once the alignments are returned the conservation of each epitope can be calculated. This is
-defined as the percentage of sequences where the epitope is present out of the total aligned. The
+defined as <b>the percentage of sequences where the epitope is present out of the total aligned</b>. The
 set of sequences can be chosen based on a desired identity cutoff or taxon specification. For
 example, the sequences may constitute all orthologs within a bacterial species or just a set of
 strains.
 
 <h4>Results</h4>
 <p>
+Results are given as a table of all binders with >n alleles and their percentage
+conservation at that identity level. In addition a plot showing the variation of
+this value with cutoff identity gives an indication of how well an epitope is conserved
+across species/strains. This will be context dependent.
 
 <h4>BLAST options</h4>
 Our method uses the NCBI online Blast service to retrieve orthologous matches. By default

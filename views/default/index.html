@@ -11,7 +11,7 @@
 {{pass}}
 
 {{actions = (('View predictions','quickview'),('Submit job','submit'),
-	      ('Manage genomes','genomes'), ('Genome analysis','analysis'),
+	      ('Browse genomes','genomes'), ('Genome analysis','analysis'),
 	      ('Epitope conservation','conservation'),
 	      ('Configuration','admin'), ('Citation','citation') ) }}
 
@@ -21,14 +21,10 @@
 
 {{end}}
 
-
 <h3>Quick search</h3>
-<small>You can browse locus tag names via 'Manage genomes' page.</small>
-<table class='smalltable'><tr><td>
+<div>
 {{=searchform}}
-</td></tr>
-</table>
-
+</div>
 
 {{block right_sidebar}}
 
@@ -44,7 +40,7 @@
 <script>
 jQuery('#myform').submit(function() {
   ajax('{{=URL('default', 'plots.load')}}',
-  ['label','genome','tag','width','height','n'], 'plotdiv');
+  ['label','genome','tag','gene','width','height','n'], 'plotdiv');
   return false;
 });
 </script>
