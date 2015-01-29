@@ -26,20 +26,39 @@ platform.
 
 <h4>Submission page</h4>
 <p>
-The binding predictions are made by submitting jobs via the submit form.
-Jobs are queued and run in the background using the web2py scheduler system and are run consecutively. However it is possible
-to create multiple workers when web2py is started and thus multiple queues. You could do this if
-you are using a computer with multiple processors and want to make better use of them.
-<p>
-The time taken depends on the number of alleles, number of proteins and
-the prediction method. Tepitope is fastest and will take less than 15 minutes to do a genome with
-~4000 proteins for each allele. NetMHCIIpan will be noticeably slower.
+The binding predictions are made by submitting jobs via the submission form. Several
+prediction methods can be chosen and will be run in turn. Once the submit buttone is
+pressed the user is directed to another page indicating the task id and status shown
+as QUEUED. The id is unique identifier for the job. Refreshing the page will show the
+task progress moving from ASSIGNED to RUNNING then COMPLETED once the job is done.
+This page can be retrieved if you know the job id with this URL:
+<div class="monospace">
+http://localhost/epitopemap/default/jobsubmitted?id=x
+</div>
 
-<h4>Methods</h4>
+<p>
+Jobs are queued and run in the background using the web2py scheduler system and are run
+consecutively. However it is possible to create multiple workers when web2py is started and
+thus multiple queues. You could do this if you are using a computer with multiple
+processors and want to make better use of them.
+<p>
+The time taken to run predictions depends on the number of alleles, number of proteins and
+the prediction method. Tepitope is fastest and will take 15-20 minutes to do a genome with
+~4000 proteins for each allele. NetMHCIIpan will be noticeably slower and may take several
+hours.
+
+<h4>Prediction methods</h4>
+There are many MHC binding (T cell), B cell and other predictors available. Those currently
+supported by this application are due to their popularity and reliability. We primarily
+focus on MHC binding prediction at this time.
+<p>
 The Tepitope method is our own Python implementation of TEPITOPEPan and requires no external program
 to run. netMHCIIpan must be downloaded separately from the website and installed on your system.
 The process is quite simple. The same applies for the IEDB tools. Both of these tools are free
 for academic use but we do not distribute them with this app.
+Remember that this app is designed as an integrated way to use these tools but
+is not meant to replace them in all respects. The netMHCIIpan server at the CBS
+should be consulted for some more detailed options on using that program.
 
 Here are the available methods with download links for external tools:
 <p>

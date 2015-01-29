@@ -27,8 +27,10 @@ methods = ['tepitope','netmhciipan','iedbmhc1','bcell']#,'threading'] #'iedbmhc2
 iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
 bcellmethods = ['Chou-Fasman', 'Emini', 'Karplus-Schulz',
                 'Kolaskar-Tongaonkar', 'Parker', 'Bepipred']
-colors = {'tepitope':'green','netmhciipan':'red',
-           'iedbmhc1':'blue','iedbmhc2':'orange','threading':'purple'}
+colors = {'tepitope':'green','netmhciipan':'orange',
+           'iedbmhc1':'blue','iedbmhc2':'pink','threading':'purple'}
+colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
+               'threading':'Purples','iedbmhc1':'Blues'}
 
 def index():
     """
@@ -159,7 +161,26 @@ def plotBCell(plot,pred,height):
     h=height
     y = y+abs(min(y))
     y=y*(h/max(y))
-    plot.line(x, y, line_color="gray", line_width=2, alpha=0.7)
+    plot.line(x, y, line_color="red", line_width=2, alpha=0.6,legend='bcell')
+
+    return
+
+def plotLines(preds,tag,width=820,height=None,seqdepot=None,bcell=None):
+    """Plot epitopes as lines"""
+    from bokeh.models import Range1d,HoverTool,ColumnDataSource
+    from bokeh.plotting import Figure
+
+    yrange = Range1d(start=1, end=10)
+    if height==None:
+        height = 130+50*len(preds)
+    plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
+           y_range=yrange,
+           tools="xpan, xwheel_zoom, resize, hover, reset, save",
+           background_fill="#FAFAFA")
+    for m in preds:
+        pred = preds[m]
+        sc = pred.scorekey
+        y=pred.data[sc]
 
     return
 
@@ -177,8 +198,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
 
     yrange = Range1d(start=1, end=alls)
     ylabels=[]
-    colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
-               'threading':'Purples','iedbmhc1':'Blues'}
+
     plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
            y_range=yrange, #y_range=ylabels,
            y_axis_label='allele',
@@ -279,6 +299,8 @@ def plots():
     if label == 'dummy':
         figure = plotEmpty()
         return dict(figure=figure)
+    g = request.vars.genome
+    tag = request.vars.tag
     if request.vars.width == None:
         width = 820
     else:
@@ -287,9 +309,6 @@ def plots():
         height = int(request.vars.height)
     else:
         height = None
-
-    g = request.vars.genome
-    tag = request.vars.tag
     if request.vars.n == None:
         n=3
     else:
@@ -298,7 +317,6 @@ def plots():
         perccutoff=float(request.vars.perccutoff)
     else:
         perccutoff=0.97
-
     preds,bcell,cutoffs = getPredictions(label,g,tag,perccutoff)
     if len(preds)==0 or preds==None:
         return dict(error=True)
@@ -309,7 +327,11 @@ def plots():
         print seq
         sd = getSeqDepot(seq)['t']
 
-    figure = plotTracks(preds,tag,n=n,width=width,height=height,seqdepot=sd,bcell=bcell)
+    if request.vars.kind == None:
+        figure = plotTracks(preds,tag,n=n,width=width,height=height,seqdepot=sd,bcell=bcell)
+    else:
+        figure = plotLines(preds,tag,width=width,height=height,seqdepot=sd,bcell=bcell)
+
     return dict(figure=figure,preds=preds,error=False)
 
 def scoredistplots(preds):
