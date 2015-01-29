@@ -132,7 +132,7 @@ def embedPlot(plot):
 
 def plotAnnotations(plot,annotation):
     h=1.8
-    y=1.4+h/2.0
+    y=.4+h/2.0
     if 'tmhmm' in annotation:
         vals = annotation['tmhmm']
         x=[i[0]+(i[1]-i[0])/2.0 for i in vals]
@@ -155,12 +155,12 @@ def plotBCell(plot,pred,height):
     """Line plot of b cell predictions - no allele stuff"""
 
     x = pred.data.Position
-    print pred.data[:20]
+    #print pred.data[:20]
     #source = ColumnDataSource(data=dict(x=x,y=y))
     y=pred.data.Score
     h=height
     y = y+abs(min(y))
-    y=y*(h/max(y))
+    y = y*(h/max(y))+3
     plot.line(x, y, line_color="red", line_width=2, alpha=0.6,legend='bcell')
 
     return
@@ -195,22 +195,23 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         alls += len(preds[m].data.groupby('allele'))
     if height==None:
         height = 130+10*alls
-
-    yrange = Range1d(start=1, end=alls)
-    ylabels=[]
-
+    yrange = Range1d(start=0, end=alls+3)
     plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
            y_range=yrange, #y_range=ylabels,
            y_axis_label='allele',
            tools="xpan, xwheel_zoom, resize, hover, reset, save",
            background_fill="#FAFAFA")
 
-    h=1
+    h=3
     if bcell != None:
         plotBCell(plot, bcell, alls)
     if seqdepot != None:
         plotAnnotations(plot,seqdepot)
-        h=4
+
+    #lists for hover data
+    #we plot all rects at once
+    x=[];y=[];allele=[];widths=[];clrs=[];peptide=[]
+    predictor=[];position=[];score=[];leg=[]
 
     for m in preds:
         pred = preds[m]
@@ -222,38 +223,36 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         l = pred.getLength()
         grps = df.groupby('allele')
         alleles = grps.groups.keys()
-
-        if pred.rankascending == 1:
-            highest = min(df[sckey])
-        else:
-            highest = max(df[sckey])
         if len(pb)==0:
             continue
-
         c=colors[m]
+        leg.append(m)
+
         for a,g in grps:
-            ylabels.append(a)
             b = pred.getBinders(data=g)
             b = b[b.pos.isin(pb.pos)] #only promiscuous
             b.sort('pos',inplace=True)
             scores = b[sckey].values
+            score.extend(scores)
             pos = b['pos'].values
-            x = pos+(l/2.0) #offset as coords are rect centers
-            w = [l for i in scores]
-            y = [h+0.5 for i in scores]
-            #c = [mpl.colors.rgb2hex(cmap(sc/highest)*10) for sc in scores]
-            alls = [a for i in x]
-            p = list(b.peptide.values)
-            pr = [m for i in x]
-            source = ColumnDataSource(data=dict(x=x,y=y,allele=alls,peptide=p,predictor=pr,
-                                                position=pos,score=scores))
-            plot.rect(x,y, width=w, height=0.8,
-                 x_range=Range1d(start=1, end=len(g)+l),
-                 color=c,line_color='gray',alpha=0.7,source=source,
-                 min_border_left=2,min_border_right=2,legend=m)
+            position.extend(pos)
+            x.extend(pos+(l/2.0)) #offset as coords are rect centers
+            widths.extend([l for i in scores])
+            clrs.extend([c for i in scores])
+            y.extend([h+0.5 for i in scores])
+            alls = [a for i in scores]
+            allele.extend(alls)
+            peptide.extend(list(b.peptide.values))
+            predictor.extend([m for i in scores])
             h+=1
 
-    #hover = [t for t in plot.tools if isinstance(t, HoverTool)][0]
+    source = ColumnDataSource(data=dict(x=x,y=y,allele=allele,peptide=peptide,
+                                    predictor=predictor,position=position,score=score))
+    plot.rect(x,y, width=widths, height=0.8,
+         x_range=Range1d(start=1, end=len(g)+l),
+         color=clrs,line_color='gray',alpha=0.7,source=source,
+         min_border_left=2,min_border_right=2)
+
     hover = plot.select(dict(type=HoverTool))
     hover.tooltips = OrderedDict([
         ("allele", "@allele"),
@@ -268,11 +267,11 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     plot.xaxis.major_label_text_font_size = "8pt"
     plot.xaxis.major_label_text_font_style = "bold"
     plot.ygrid.grid_line_color = None
+    plot.yaxis.major_label_text_font_size = '0pt'
     plot.xaxis.major_label_orientation = np.pi/4
 
-    js,html = embedPlot(plot) #new method
+    js,html = embedPlot(plot)
     #print html
-    #print type(plot)
     return html
 
 def plotEmpty(width=850):
