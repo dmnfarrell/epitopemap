@@ -191,12 +191,14 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     from bokeh.plotting import Figure
 
     alls=1
+    if title == None:
+        title=tag
     for m in preds:
         alls += len(preds[m].data.groupby('allele'))
     if height==None:
         height = 130+10*alls
     yrange = Range1d(start=0, end=alls+3)
-    plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
+    plot = Figure(title=title,title_text_font_size="11pt",plot_width=width, plot_height=height,
            y_range=yrange, #y_range=ylabels,
            y_axis_label='allele',
            tools="xpan, xwheel_zoom, resize, hover, reset, save",
@@ -301,10 +303,12 @@ def plots():
     g = request.vars.genome
     tag = request.vars.tag
     gene = request.vars.gene
+    title=None
     if gene != None:
         t = getTagbyGene(g,gene) #override tag with gene name if provided
         if t != None:
             tag = t
+            title = tag+' / '+gene
     if request.vars.width == None:
         width = 820
     else:
@@ -331,7 +335,8 @@ def plots():
         sd = getSeqDepot(seq)['t']
 
     if request.vars.kind == None:
-        figure = plotTracks(preds,tag,n=n,width=width,height=height,seqdepot=sd,bcell=bcell)
+        figure = plotTracks(preds,tag,n=n,title=title,
+                    width=width,height=height,seqdepot=sd,bcell=bcell)
     else:
         figure = plotLines(preds,tag,width=width,height=height,seqdepot=sd,bcell=bcell)
 

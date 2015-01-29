@@ -1,5 +1,9 @@
 <div style="width:100%;">
 <table class="mytable">
+<tr><th>Gene:</th></tr>
+{{if feat.has_key('gene'):}}
+<tr><td>{{=feat['gene']}}</td></tr>
+{{pass}}
 <tr><th>Note:</th></tr>
 {{if feat.has_key('note'):}}
 <tr><td>{{=feat['note']}}</td></tr>
