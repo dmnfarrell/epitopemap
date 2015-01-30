@@ -25,7 +25,6 @@ response.google_analytics_id = None
 response.menu = [
     (T('Home'), False, URL('default','index'), []),
     (T('Help'), False, URL('default','help'), []),
-    (T('About'), False, URL('default','about'), [])
     ]
 
 DEVELOPMENT_MENU = True
@@ -38,28 +37,14 @@ def _():
     # shortcuts
     app = request.application
     ctr = request.controller
-    # useful links to internal and external resources
-    '''response.menu+=[
-        (SPAN('web2py',_style='color:yellow'),False, None, [
-                (T('This App'),False,URL('admin','default','design/%s' % app), [
-                        (T('Controller'),False,
-                         URL('admin','default','edit/%s/controllers/%s.py' % (app,ctr))),
-                        (T('View'),False,
-                         URL('admin','default','edit/%s/views/%s' % (app,response.view))),
-                        (T('Layout'),False,
-                         URL('admin','default','edit/%s/views/layout.html' % app)),
-                        (T('Stylesheet'),False,
-                         URL('admin','default','edit/%s/static/css/web2py.css' % app)),
-                        (T('DB Model'),False,
-                         URL('admin','default','edit/%s/models/db.py' % app)),
-                        (T('Menu Model'),False,
-                         URL('admin','default','edit/%s/models/menu.py' % app)),
-                        (T('Database'),False, URL(app,'appadmin','index')),
-                        (T('Errors'),False, URL('admin','default','errors/' + app)),
-                        (T('About'),False, URL('admin','default','about/' + app)),
-                        ])
-                ]
-         )]'''
+    response.menu+=[
+        (SPAN('Menu',_style='color:yellow'),False, None, [
+            (T('Quick view'),False,URL('default','quickview')),
+            (T('Submit job'),False,URL('default','submit')),
+            (T('Configuration'),False,URL('default','admin')),
+            (T('About'),False,URL('default','about')),
+            (T('Site admin'),False,URL('admin','default','design/%s' % app)),]
+         )]
 _()
 
 if "auth" in locals(): auth.wikimenu()

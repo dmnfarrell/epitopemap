@@ -12,6 +12,29 @@ def doTask():
     t = time.ctime()
     return dict(result=t)
 
+def createMailer():
+    """Create mailer for sending mails"""
+
+    from gluon.tools import Mail
+    #read in config
+    parser,conffile = getConfig()
+    settings = dict(parser.items('mail'))
+
+    mail = Mail()
+    mail.settings.server = settings['server']
+    mail.settings.sender = settings['sender']
+    mail.settings.login = None
+    return mail
+
+def sendMail(recipient, jobid):
+    mail = createMailer()
+    print mail
+    mail.send(to=[recipient],
+              subject='job %s finished' %jobid,
+              message='hi there')
+
+    return
+
 def getGenome(name):
     """Get a genome file from the db"""
 

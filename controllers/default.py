@@ -79,28 +79,6 @@ def call():
 def data():
     return dict(form=crud())
 
-def hello():
-    print request.vars
-    x=request.vars.name
-    return dict(message=H3(x))
-
-def norm(s):
-    return (s - s.min()) / (s.max() - s.min())
-
-def seabornsetup():
-    global sns
-    try:
-        import seaborn as sns
-    except:
-        print 'seaborn library not found'
-        return
-    sns.set_style("ticks", {'axes.grid': False,'legend.frameon':True})
-    sns.set_context("paper", rc={'axes.labelsize':16,'xtick.labelsize': 14, 'axes.titlesize':16,
-                    'lines.color':1.0,'xtick.labelsize': 12,
-                    'ytick.labelsize': 15, 'legend.fontsize':12, 'title.fontsize':14,
-                    'figure.figsize': np.array([8, 5])})
-    return
-
 def mpld3Plot(fig, objects=None):
     """mpld3 html plot from figure"""
 
@@ -692,6 +670,7 @@ def selectionForm():
     form.element('input[name=tag]')['_style'] = 'width:130px;'
     return form
 
+
 def quickview():
     """Quickview"""
 
@@ -783,6 +762,7 @@ def analysis():
             _class="smalltable"), _id="myform")
     return dict(form=form)
 
+@auth.requires_login()
 def analysegenome():
     """Analyse genome predictions"""
 
@@ -1034,7 +1014,4 @@ def citation():
 def help():
     msg = T('')
     return dict(msg=msg)
-
-def tablesorter():
-    return dict()
 
