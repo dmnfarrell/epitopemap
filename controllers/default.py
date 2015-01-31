@@ -643,7 +643,7 @@ def quicksearch():
               Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
                     multiple=False),default=1,label='genome'),
               Field('tag', 'string', label='locus tag',default='',length=10),
-              Field('gene', 'string', label='gene',default='dnaA',length=10),
+              Field('gene', 'string', label='gene',default='',length=10),
               hidden=dict(width=550,height=250,n=2),
               formstyle="table3cols",_id='myform')
     form.element('input[name=tag]')['_style'] = 'width:210px;'
@@ -779,15 +779,58 @@ def analysegenome():
     summary = '%s proteins with %s binders in >%s alleles' %(len(res),len(b),n)
     return dict(res=res,top=top,cl=cl,summary=summary,plothtml=plothtml)
 
-def plotgenome():
-    print request.vars
+def compare():
+    """Correlate predictions from 2 methods"""
 
-    infile, record, index = getGenome(g)
-    outfile = os.path.join(request.folder,'static/data/%s.png' %g)
-    img = Genome.drawGenomeMap(infile, outfile)
-    img = os.path.basename(img)
-    print img
-    return dict(img=img)
+    form = SQLFORM.factory(
+              Field('label',requires=IS_IN_DB(db, 'predictions.identifier',zero=None,
+                    multiple=False),default=1,label='id'),
+              Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
+                    multiple=False),default=1,label='genome'),
+              Field('method1',requires=IS_IN_SET(methods,multiple=False,zero=None),label='method 1'),
+              Field('method2',requires=IS_IN_SET(methods,multiple=False,zero=None),label='method 2'),
+              Field('n', 'string', label='min alleles',default=3),
+              hidden=dict(perccutoff=.98),
+              formstyle="table3cols",_id='myform',_class='myform')
+    form.element('input[name=n]')['_style'] = 'width:50px;'
+    return dict(form=form)
+
+def correlationanalysis():
+
+    fig=''
+    msg=None
+    if request.vars.method1 == request.vars.method2:
+        return dict(res=None,msg='2 methods are the same!')
+    print request.vars
+    res = correlation(**request.vars)
+    if res is None:
+        msg = 'no such predictions'
+    fig = plotCorrelation(res)
+    return dict(fig=fig,res=res,msg=msg)
+
+def plotCorrelation(res):
+    from bokeh.models import HoverTool,ColumnDataSource
+    from bokeh.plotting import Figure
+    width=600
+    height=600
+    plot = Figure(title='',title_text_font_size="11pt",
+            plot_width=width, plot_height=height,
+           x_axis_label='method1',y_axis_label='method2',
+           tools="pan, wheel_zoom, resize, hover, reset, save",
+           background_fill="#FAFAFA")
+
+    x=res['perc_x']
+    y=res['perc_y']
+    source = ColumnDataSource(data=dict(x=x,y=y, protein=res.locus_tag))
+    plot.circle(x,y, color='blue', line_color='gray',fill_alpha=0.5, size=10, source=source)
+    hover = plot.select(dict(type=HoverTool))
+    hover.tooltips = OrderedDict([
+        ("binders1", "@x"),
+        ("binders2", "@y"),
+        ("protein", "@protein"),
+    ])
+    js,html = embedPlot(plot)
+    return html
 
 def conservationAnalysisForm(defaultid='test'):
 

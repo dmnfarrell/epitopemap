@@ -189,12 +189,9 @@ def applySettings():
         os.environ["PATH"] += os.pathsep+paths[i]
     return
 
-def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
+def getBinders(path,method,n=3,cutoff=0.98):
+    """Re-usable method to get binders from path"""
 
-    path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
-
-    if not os.path.exists(path):
-       return dict(res=None)
     binderfile = os.path.join(path,'binders_%s.csv' %n)
     print binderfile
     if os.path.exists(binderfile):
@@ -202,7 +199,15 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     else:
         b = Analysis.getAllBinders(path,method=method,n=n,cutoff=cutoff)
         b.to_csv(binderfile)
+    return b
 
+def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
+
+    path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
+    if not os.path.exists(path):
+       return dict(res=None)
+
+    b = getBinders(path,method,n,cutoff)
     P = Base.getPredictor(method)
     res = b.groupby('name').agg({P.scorekey:[np.mean,np.size,np.max]}).sort()
     res.columns = res.columns.get_level_values(1)
@@ -232,15 +237,6 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     #add protein urls to results table
     res['locus_tag'] = res['locus_tag'].apply(
         lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],extension=''))))
-    #seabornsetup()
-    #fig=plt.figure(figsize=(6,6))
-    #ax=fig.add_subplot(111)
-    #res.sort('order').plot(kind='bar',x='order',y='perc',ax=ax)
-    #ax.set_title('binder score distr')
-    #ax=fig.add_subplot(212)
-    #ax.set_title('coverage distr')
-    #res.hist('length',bins=30,alpha=0.8,ax=ax)
-    #plt.tight_layout()
     fig=None
     return b,res,top,cl,fig
 
@@ -303,7 +299,6 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
             s.name=i
             vals.append(s)
         df = pd.DataFrame(vals)
-        print df
         return df
 
     stats = findConservedwithIdentity(alnrows,pb)
@@ -320,16 +315,63 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
     summary = pb
     #print pb[:10]
 
-    #seabornsetup()
     fig=plt.figure(figsize=(5,5))
     ax=fig.add_subplot(111)
-    stats.plot(ax=ax,grid=False,lw=1.5)
+    stats=stats.T.drop_duplicates().T
+    print stats
+    stats.plot(ax=ax,grid=False,lw=1.5,colormap='rainbow')
     plt.legend(loc=2,prop={'size':9})
     ax.set_ylabel('percentage cons.')
     ax.set_title('conservation vs identity')
     plt.tight_layout()
+    #fig = plotConserved(stats)
     return res, alnrows, summary, fig
 
+def plotConserved(stats):
+    from bokeh.models import HoverTool,ColumnDataSource
+    from bokeh.plotting import Figure
+    width=500
+    height=500
+    plot = Figure(title='',title_text_font_size="11pt",
+            plot_width=width, plot_height=height,
+           x_axis_label='identity',y_axis_label='perc_cons',
+           tools="pan, wheel_zoom, resize, hover, reset, save",
+           background_fill="#FAFAFA")
+    x=stats.index
+    for c in stats.columns:
+        print x, stats[c]
+        plot.line(x,stats[c], line_color='blue',line_width=1.5,legend=c)
+    js,html = embedPlot(plot)
+    return html
+
+def correlation(label, genome, method1, method2, n=1):
+    """Correlate binders from 2 methods"""
+
+    n=int(n)
+    path1 = os.path.join(datapath, '%s/%s/%s' %(label,genome,method1))
+    path2 = os.path.join(datapath, '%s/%s/%s' %(label,genome,method2))
+    print path1, path2
+    if not os.path.exists(path1) or not os.path.exists(path2):
+       return 1
+    b1 = getBinders(path1,method1,n=n)
+    b2 = getBinders(path2,method2,n=n)
+
+    #m = pd.merge(b1, b2, on=['peptide','name','pos'])#, suffixes=['1','2']
+    P1 = Base.getPredictor(method1)
+    P2 = Base.getPredictor(method2)
+    g1 = b1.groupby('name').agg({P1.scorekey:[np.mean,np.size,np.max]}).sort()
+    g1.columns = g1.columns.get_level_values(1)
+    g2 = b2.groupby('name').agg({P2.scorekey:[np.mean,np.size,np.max]}).sort()
+    g2.columns = g2.columns.get_level_values(1)
+    res = pd.merge(g1, g2, left_index=True,right_index=True)
+    gfile = getGenome(genome)
+    gn = Genome.genbank2Dataframe(gfile, cds=True)
+    res = res.merge(gn[['locus_tag','length']],
+                            left_index=True,right_on='locus_tag')
+    res['perc_x'] = res['size_x']/res.length*100
+    res['perc_y'] = res['size_y']/res.length*100
+    #print res[:20]
+    return res
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

@@ -1,0 +1,15 @@
+<script src="{{=URL('static','js/sorttable.js')}}"></script>
+{{if res is None:}}
+{{=T(msg)}}
+
+{{else:}}
+{{=DIV(H5('%s' %request.vars.genome),_class="divheader")}}
+
+{{=XML(fig)}}
+
+{{=DIV(H5('results:',_class="divheader"))}}
+<div class="scrollingArea" style="width:100%">
+{{=XML(res.to_html(escape=False,classes="tinytable",index=False))}}
+</div>
+
+{{pass}}
