@@ -483,7 +483,7 @@ def protein():
 def genomes():
     """Display available genomes and allow upload"""
 
-    formats = ['genbank','embl','fasta']
+    formats = ['genbank'] #,'embl','fasta']
     uploadform = FORM(
                    TABLE(TR(TD(LABEL('Identifier:',_for='name')),
                         TD(INPUT(_name='name',_type='string',_required=True))),
@@ -973,9 +973,8 @@ def submit():
     form = submissionForm()
     if form.process().accepted:
         session.flash = 'form accepted'
-        #print request.vars
         task = scheduler.queue_task('runPredictors', pvars=request.vars,
-                                    immediate=True, timeout=4600)
+                                    immediate=True, timeout=86400)
         redirect(URL('jobsubmitted', vars={'id':task.id}))
     elif form.errors:
         response.flash = 'form has errors'

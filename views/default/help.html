@@ -18,8 +18,15 @@
 
 <h3>Background</h3>
 This is a web interface for running and visualising epitope predictions (currently MHC binding) and
-allow integrated analysis for entire proteomes. The application is built on the web2py
-platform.
+allow integrated analysis for entire proteomes. The app is designed to address the limitations
+of current web servers for epitope prediction. Limits on the sequence size which can be submitted
+to website servers generally only allows single protein analysis and thus precludes
+integrated analysis for a whole proteome.
+<p>
+This application is built on the web2py platform. This manual does not give
+many web2py details since the application is meant to be
+usable without knowledge of the framework. Advanced users can consult the
+{{=A('web2py book',_href='http://web2py.com/book')}} for details.
 
 <a name="Running predictions"></a>
 <h3>Running predictions</h3>
@@ -106,7 +113,8 @@ are stored in the static/results folder of the web application.
 <h4>Adding sequences</h4>
 <p>
 Before predictions you need to add your proteins/proteome to the application.
-Annotated protein sequences are added as either fasta, embl or genbank format.
+Annotated protein sequences are added as genbank format though fasta and embl format are
+also to be added. Genbank is used for reasons of consistency and completness.
 Usually these will represent the annotated sequences of a species but any properly
 formatted file can be used that groups the proteins together.
 Genbank format files for an organism can be found on the
@@ -286,11 +294,18 @@ should then be deleted manually from the filesystem.
 <h4>Starting the server</h4>
 The server is started by typing the following command from inside the web2py folder:
 <div class="monospace">
-sudo python web2py.py -i localhost -a 123 -p 80 -K epitopemap -X
+sudo python web2py.py -i localhost -a password -p 80 -K epitopemap -X
 </div>
--i web address
--p is the port
--K specifies the scheduler
+where<br>
+-i is the web address<br>
+-p is the port<br>
+-K specifies the app for the scheduler<br>
+-a is the admin password<br>
+
+<h4>Security</h4>
+We2py provides a built in system for user accounts and allows authorization to be done on a page
+basis.
+
 
 <a name="Installation"></a>
 <h3>Installation</h3>

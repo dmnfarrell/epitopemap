@@ -1,7 +1,12 @@
 {{extend 'layout.html'}}
 
 <h4>Upload genome file</h4>
-<i>The following formats are currently accepted: fasta, genbank or embl</i>
+<i>Only genbank format is currently accepted. (fasta and embl to be added)</i>
+<br>
+Genbank format files for an organism can be found on the
+ {{=A('NCBI genomes page',_href='http://www.ncbi.nlm.nih.gov/genome/')}} or downloaded
+{{=A('via ftp',_href='ftp://ftp.ncbi.nih.gov/genomes/')}}.
+
 <p>
 {{=form}}
 
