@@ -140,7 +140,6 @@ def plotBCell(plot,pred,height):
     y = y+abs(min(y))
     y = y*(h/max(y))+3
     plot.line(x, y, line_color="red", line_width=2, alpha=0.6,legend='bcell')
-
     return
 
 def plotLines(preds,tag,width=820,height=None,seqdepot=None,bcell=None):
@@ -241,8 +240,8 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         ("score", "@score"),
         ("predictor", "@predictor"),
     ])
-    seqlen = pred.data.pos.max()+l
-    plot.set(x_range=Range1d(start=1, end=seqlen))
+    #seqlen = pred.data.pos.max()+l
+    #plot.set(x_range=Range1d(start=1, end=seqlen))
 
     plot.xaxis.major_label_text_font_size = "8pt"
     plot.xaxis.major_label_text_font_style = "bold"

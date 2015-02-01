@@ -292,9 +292,13 @@ with a new id. Therefore this menu is normally only used to delete old predictio
 should then be deleted manually from the filesystem.
 
 <h4>Starting the server</h4>
+The most simple way to run the application is to use the built-in rocket server.
+Non-root users will have problems running the server on 'priviledged' ports (over 1024)
+so we recommend using a high port like 8000 and running as your own user. It is possible
+to run as root using sudo but not recommended.
 The server is started by typing the following command from inside the web2py folder:
 <div class="monospace">
-sudo python web2py.py -i localhost -a password -p 80 -K epitopemap -X
+python web2py.py -i localhost -a password -p 8000 -K epitopemap -X
 </div>
 where<br>
 -i is the web address<br>
@@ -302,10 +306,15 @@ where<br>
 -K specifies the app for the scheduler<br>
 -a is the admin password<br>
 
+For servers with a high traffic production environment it is possible to
+deploy web2py behind Apache. Advanced users can consult the
+{{=A('deployment recipes',_href='http://web2py.com/books/default/chapter/29/13/deployment-recipes')}}
+in the web2py book.
+
 <h4>Security</h4>
 We2py provides a built in system for user accounts and allows authorization to be done on a page
-basis.
-
+basis. Currently users need to log in to submit and view predictions. New users can register via
+the home page and as admin user you can grant access.
 
 <a name="Installation"></a>
 <h3>Installation</h3>
