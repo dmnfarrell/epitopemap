@@ -112,8 +112,10 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
     """Run predictors and save results"""
 
     applySettings()
-    if names != ' ':
+    if names != '':
         names = names.split(',')
+    else:
+        names=None
     if newlabel != '':
         label = newlabel
     query = db.genomes(db.genomes.name==genome)

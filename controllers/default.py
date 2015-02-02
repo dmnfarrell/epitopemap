@@ -126,7 +126,8 @@ def plotAnnotations(plot,annotation):
         w=[i[2]-i[1] for i in vals]
         print x,w,y
         plot.rect(x,y, width=w, height=h,color='white',line_color='black',alpha=0.6)
-        plot.text(x,y-1, text=text, angle=0)
+        plot.text(x,y, text=text, text_font_size='9pt', angle=0, text_alpha=.8,
+                      text_baseline='middle',text_align='center')
     return
 
 def plotBCell(plot,pred,height):
@@ -240,8 +241,9 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         ("score", "@score"),
         ("predictor", "@predictor"),
     ])
-    #seqlen = pred.data.pos.max()+l
-    #plot.set(x_range=Range1d(start=1, end=seqlen))
+    print pred.data.sort()[:20]
+    seqlen = pred.data.pos.max()+l
+    plot.set(x_range=Range1d(start=0, end=seqlen+1))
 
     plot.xaxis.major_label_text_font_size = "8pt"
     plot.xaxis.major_label_text_font_style = "bold"
