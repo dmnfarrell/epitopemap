@@ -5,28 +5,7 @@
 {{=form}}
 </div>
 
-<div class="tabs">
-    <ul class="tab-links">
-        <li class="active"><a href="#plot">plot</a></li>
-        <li><a href="#feature">feature</a></li>
-        <li><a href="#bokeh">bokeh</a></li>
-    </ul>
-
-    <div class="tab-content">
-        <div id="plot" class="tab active">
-            {{=LOAD(c='default',f='plots.load',target='plotdiv',
-            vars={'label':l,'genome':g,'tag':tag,'n':3})}}
-        </div>
-        <div id="feature" class="tab">
-            {{=LOAD(c='default',f='feature.load',target='featurediv',
-            vars={'label':l,'genome':g,'tag':tag,'n':3})}}
-        </div>
-        <div id="bokeh" class="tab">
-
-        </div>
-
-    </div>
-</div>
+{{=XML(figure)}}
 
 <script>
 jQuery('#myform').submit(function() {

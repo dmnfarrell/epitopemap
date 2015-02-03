@@ -208,19 +208,23 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
     if not os.path.exists(path):
        return dict(res=None)
-
     b = getBinders(path,method,n,cutoff)
     P = Base.getPredictor(method)
-    res = b.groupby('name').agg({P.scorekey:[np.mean,np.size,np.max]}).sort()
+    if P.rankascending==1:
+        func = np.min
+    else:
+        func = np.max
+    res = b.groupby('name').agg({P.scorekey:[np.size,func]}).sort()
     res.columns = res.columns.get_level_values(1)
+    res.rename(columns={'size': 'binders'}, inplace=True)
 
     #get genome and combine data
     gfile = getGenome(gname)
     g = Genome.genbank2Dataframe(gfile, cds=True)
     res = res.merge(g[['locus_tag','length','gene','product','order']],
                             left_index=True,right_on='locus_tag')
-    res['perc'] = res['size']/res.length*100
-    res = res.sort('perc',ascending=False)
+    res['perc_binders'] = res['binders']/res.length*100
+    res = res.sort('perc_binders',ascending=False)
     clusterfile = os.path.join(path,'clusters_%s.csv' %n)
     if os.path.exists(clusterfile):
         cl = pd.read_csv(clusterfile)
@@ -229,11 +233,12 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
         cl.set_index('name').to_csv(clusterfile)
 
     if cl is not None:
-        gc = cl.groupby('name').agg({'density':np.max})
+        gc = cl.groupby('name').agg({'density':np.max,'name':np.size})
+        gc.rename(columns={'name': 'clusters'}, inplace=True)
         res = res.merge(gc,left_on='locus_tag',right_index=True,how='left')
     res = res.fillna('-')
-    #get top binders in genome? plus most frequent
-    top = b.groupby('peptide').agg({P.scorekey:np.max,'allele':np.max,
+    #get binder metrics
+    top = b.groupby('peptide').agg({P.scorekey:func,'allele':np.max,
                     'name': lambda x: ','.join(list(x))}).reset_index()
     top = top.sort(P.scorekey,ascending=P.rankascending)[:1000]
     #add protein urls to results table

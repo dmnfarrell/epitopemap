@@ -10,4 +10,5 @@
 {{=TABLE(*cutoffs[c].items(),_class='tinytable')}}
 </div>
 {{pass}}
+
 </div>

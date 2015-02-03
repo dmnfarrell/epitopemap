@@ -241,7 +241,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         ("score", "@score"),
         ("predictor", "@predictor"),
     ])
-    print pred.data.sort()[:20]
+    #print pred.data.sort()[:20]
     seqlen = pred.data.pos.max()+l
     plot.set(x_range=Range1d(start=0, end=seqlen+1))
 
@@ -324,13 +324,15 @@ def plots():
 def scoredistplots(preds):
     """Score distribution plots"""
 
+    from bokeh.models import Range1d,GridPlot
+    from bokeh.plotting import Figure
     plots=[]
     for p in preds:
         pred=preds[p]
         key=pred.scorekey
         data = pred.data[key]
         hist, edges = np.histogram(data, density=True, bins=30)
-        p = figure(title=p,plot_height=250,tools='')
+        p = Figure(title=p,plot_height=250,tools='')
         p.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],
                fill_color="#036564", line_color="#033649")
         p.xgrid.grid_line_color = None
@@ -339,6 +341,19 @@ def scoredistplots(preds):
     plot = GridPlot(children=[plots],title='test')
     js,html = embedPlot(plot)
     return html
+
+def scoreCorrelations(preds):
+    figs=[]
+    for p in preds:
+        pred=preds[p]
+        df=pred.data
+        x = df.pivot_table(index='peptide', columns='allele', values=pred.scorekey)
+        f=plt.figure()
+        ax=f.add_subplot(111)
+        pd.scatter_matrix(x, alpha=0.2, figsize=(12,12), diagonal='hist',ax=ax)
+        #plt.tight_layout()
+        figs.append(f)
+    return figs
 
 def results():
     """Component to show predictions for all peptides for each predictor """
@@ -659,6 +674,7 @@ def selectionForm():
               Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
                     multiple=False),default=1,label='genome'),
               Field('tag', 'string', label='locus tag',default=''),
+              Field('gene', 'string', label='gene',default=''),
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
               Field('perccutoff', 'string', label='perc. cutoff',default=.98),
@@ -669,8 +685,8 @@ def selectionForm():
     form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
     #form.element('input[name=scorecutoff]')['_style'] = 'width:50px;'
     form.element('input[name=tag]')['_style'] = 'width:130px;'
+    form.element('input[name=gene]')['_style'] = 'width:130px;'
     return form
-
 
 def quickview():
     """Quickview"""
@@ -687,6 +703,13 @@ def show():
     tag = request.vars.tag
     n = int(request.vars.n)
     cutoff = float(request.vars.perccutoff)
+    gene = request.vars.gene
+    title=None
+    if gene != None:
+        t = getTagbyGene(g,gene)
+        if t != None:
+            tag = t
+            title = tag+' / '+gene
     print request.vars
     if request.vars.perccutoff == None:
         cutoff = 0.95
@@ -710,7 +733,7 @@ def show():
     sd=None
     if request.vars.annotation == 'on':
         sd = getSeqDepot(seq)['t']
-    figure = plotTracks(preds,tag,n=n,width=width,seqdepot=sd,bcell=bcell)
+    figure = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
     #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)
     #get all results into tables
@@ -733,7 +756,7 @@ def show():
     found = [(m,preds[m].getLength()) for m in preds]
     info = TABLE(*found,_class='tinytable')
 
-    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots
+    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots,
                 b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,cutoffs=cutoffs,
                 genome=g,tag=tag,label=label,info=info,path=path)
 
@@ -962,7 +985,6 @@ def submissionForm():
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
                 _multiple=True))),
             _class="smalltable"),_style='float: left'),
-
             _id="myform")#, _class='myform')
 
     return form
@@ -989,15 +1011,19 @@ def jobsubmitted():
     status = scheduler.task_status(taskid, output=True)
     return dict(taskid=taskid,status=status)
 
+@auth.requires_login()
 def test():
-    l='results_bovine'
+    l='results_emida'
     g='MTB-H37Rv'
     tag='Rv0011c'
     preds,bcell,c = getPredictions(l,g,tag)
-    #html = plotTracks(preds,tag)
+    figs = scoreCorrelations(preds)
+    #corrplots = mpld3Plot(figs[0])
+    from bokeh import mpl
+    corrplots = mpl.to_bokeh(fig=figs[0])
     form = FORM(TABLE(
             TD(INPUT(_name='submit',_type='submit',_value='Update'))), _id="myform")
-    return dict(g=g,tag=tag,l=l,form=form)
+    return dict(form=form,figure=corrplots)
 
 def bokehtest():
     """Bokeh test"""
