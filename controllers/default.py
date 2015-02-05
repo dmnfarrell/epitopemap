@@ -22,7 +22,9 @@ home = os.path.expanduser("~")
 genomespath = os.path.join(request.folder,'static/data/genomes')
 #datapath = os.path.join(home,'epitopedata')
 datapath = os.path.join(request.folder,'static/results')
-import Genome, Base, Tepitope, Analysis
+#import Genome, Base, Tepitope, Analysis
+from applications.epitopemap.modules.mhcpredict import base, genome, tepitope
+
 methods = ['tepitope','netmhciipan','iedbmhc1','bcell']#,'threading'] #'iedbmhc2'
 iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
 bcellmethods = ['Chou-Fasman', 'Emini', 'Karplus-Schulz',
@@ -109,18 +111,22 @@ def embedPlot(plot):
     return js,tag
 
 def plotAnnotations(plot,annotation):
+    #print annotation['proscan']
     h=1.8
     y=.4+h/2.0
+    if 'signalp' in annotation:
+        x = annotation['signalp'].values()
+        #source = ColumnDataSource(data=dict(x=x,y=y))
+        plot.rect(x,y, width=.5, height=h,color='purple',line_color='red',alpha=0.7,legend='signalp')
     if 'tmhmm' in annotation:
         vals = annotation['tmhmm']
         x=[i[0]+(i[1]-i[0])/2.0 for i in vals]
         w=[i[1]-i[0] for i in vals]
-        print x,w,y
-        #source = ColumnDataSource(data=dict(x=x,y=y))
-        plot.rect(x,y, width=w, height=h,color='blue',line_color='blue',alpha=0.6)
+        #print x,w,y
+        plot.rect(x,y, width=w, height=h,color='blue',line_color='blue',alpha=0.6,legend='tmhmm')
     if 'pfam27' in annotation:
         vals = annotation['pfam27']
-        print vals
+        #print vals
         text = [i[0] for i in vals]
         x=[i[1]+(i[2]-i[1])/2.0 for i in vals]
         w=[i[2]-i[1] for i in vals]
@@ -378,7 +384,7 @@ def binders():
     n = int(request.vars.n)
     preds,bcell,cutoffs = getPredictions(label,g,tag)
     summary = summaryhtml(preds)
-    b = Base.getBinders(preds,n=n)
+    b = base.getBinders(preds,n=n)
     kys = b.keys()
     if 'tepitope' in kys and 'netmhciipan' in kys:
         shared = pd.merge(b['tepitope'],b['netmhciipan'],
@@ -449,7 +455,7 @@ def iedb():
     tag = request.vars.tag
     feature, fastafmt, previous, next = getFeature(g,tag)
     seq = feature.qualifiers['translation'][0]
-    df = Base.getIEDBRequest(seq)
+    df = base.getIEDBRequest(seq)
     result = XML(df.to_html(classes='mytable'))
     return dict(result=result)
 
@@ -520,7 +526,7 @@ def genomes():
     db.genomes.id.readable=False
     query=((db.genomes.id>0))
     default_sort_order=[db.genomes.id]
-    links=[lambda row: A('browse',_href=URL('genome', args=row.name))]
+    links=[lambda row: A('browse',_href=URL('genomeview', args=row.name))]
     grid = SQLFORM.grid(query=query,  orderby=default_sort_order,
                 create=False, deletable=True, maxtextlength=350, paginate=35,
                 details=True, csv=False, ondelete=myondelete,
@@ -528,14 +534,14 @@ def genomes():
 
     return dict(grid=grid,form=uploadform)
 
-def genome():
+def genomeview():
     """Summary page for genome"""
 
     g = request.args[0]
     if len(request.args) == 1:
         gfile = getGenome(g)
-        data = Genome.genbank2Dataframe(gfile)
-        summary = Genome.genbankSummary(data)
+        data = genome.genbank2Dataframe(gfile)
+        summary = genome.genbankSummary(data)
         data=data[data.type=='CDS']
         data=data.set_index('locus_tag')
         return dict(genome=g,data=data,summary=summary)
@@ -742,7 +748,7 @@ def show():
         data[p] = preds[p].reshape()
     data = dict(data)
     #top binders
-    b = Base.getBinders(preds,n=n)
+    b = base.getBinders(preds,n=n)
     kys = b.keys()
     if 'tepitope' in kys and 'netmhciipan' in kys:
         shared = pd.merge(b['tepitope'],b['netmhciipan'],
@@ -763,7 +769,7 @@ def show():
 def error():
     return dict()
 
-def analysis():
+def genomeanalysis():
     """Genome wide analysis of epitope predictions"""
     defaultid = 'results_test'
     predids = [p.identifier for p in db().select(db.predictions.ALL)]
@@ -922,8 +928,8 @@ def conservationanalysis():
     else:
         res, alnrows, summary, fig = retval
 
-    alnrows = Analysis.getAlignedBlastResults(alnrows)
-    alnrows = Analysis.setBlastLink(alnrows)
+    alnrows = analysis.getAlignedBlastResults(alnrows)
+    alnrows = analysis.setBlastLink(alnrows)
     plothtml = mpld3Plot(fig)
     url =  A('direct link to these results', _href=URL('default','conservationanalysis.load',
                 vars={'label':label,'genome':gname,'tag':tag,'method':method,'n':n,
@@ -940,13 +946,13 @@ def submissionForm():
     opts1 = [OPTION(i,value=i) for i in predids]
     genomes = [p.name for p in db().select(db.genomes.ALL)]
     opts2 = [OPTION(i,value=i) for i in genomes]
-    p1 = Base.getPredictor('iedbmhc1')
+    p1 = base.getPredictor('iedbmhc1')
     mhc1alleles = p1.getMHCIList()
-    p2 = Base.getPredictor('netmhciipan')
+    p2 = base.getPredictor('netmhciipan')
     mhc2alleles = p2.getAlleleList()
-    drballeles = Base.getDRBList(mhc2alleles)
-    dqpalleles = Base.getDQPList(mhc2alleles)
-    tepitopealleles = Tepitope.getAlleles()
+    drballeles = base.getDRBList(mhc2alleles)
+    dqpalleles = base.getDQPList(mhc2alleles)
+    tepitopealleles = tepitope.getAlleles()
     #get all possible alleles for both MHCII methods
     drballeles = sorted(list(set(drballeles+tepitopealleles)))
     lengths = [9,11,13,15]

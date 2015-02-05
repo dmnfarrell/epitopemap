@@ -2,7 +2,8 @@
 
 import os,sys,types,glob
 import ConfigParser
-import Base, Genome, Analysis
+#import Base, Genome, Analysis
+from applications.epitopemap.modules.mhcpredict import base, genome, analysis
 home = os.path.expanduser("~")
 datapath = os.path.join(request.folder,'static/results')
 genomespath = os.path.join(request.folder,'static/data/genomes')
@@ -44,7 +45,7 @@ def getGenome(name):
 
 def getTagbyGene(g,gene):
     fname = getGenome(g)
-    df = Genome.genbank2Dataframe(fname, cds=True)
+    df = genome.genbank2Dataframe(fname, cds=True)
     df = df.drop_duplicates('locus_tag')
     df = df.set_index('locus_tag')
     #if gene name provided we try to override the locus_tag
@@ -60,7 +61,7 @@ def getFeature(g,tag):
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
     fname = getGenome(g)
-    df = Genome.genbank2Dataframe(fname, cds=True)
+    df = genome.genbank2Dataframe(fname, cds=True)
     df = df.drop_duplicates('locus_tag')
     df = df.set_index('locus_tag')
     keys = df.index
@@ -98,11 +99,11 @@ def getPredictions(label,genome,tag,q=0.96):
         if not os.path.exists(filename):
             continue
         df = pd.read_msgpack(filename)
-        pred = Base.getPredictor(name=m, data=df)
+        pred = base.getPredictor(name=m, data=df)
         if m == 'bcell':
             bcell = pred
             continue
-        cutoffs[m] = pred.allelecutoffs = Analysis.getCutoffs(rpath, m, q)
+        cutoffs[m] = pred.allelecutoffs = analysis.getCutoffs(rpath, m, q)
         preds[m] = pred
     return preds, bcell, cutoffs
 
@@ -120,12 +121,12 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
         label = newlabel
     query = db.genomes(db.genomes.name==genome)
     f,gfile = db.genomes.file.retrieve(query.file)
-    df = Genome.genbank2Dataframe(gfile, cds=True)
+    df = genome.genbank2Dataframe(gfile, cds=True)
     if type(methods) is not types.ListType:
         methods = [methods]
     length=int(length)
     for method in methods:
-        P = Base.getPredictor(method)
+        P = base.getPredictor(method)
         if method in ['iedbmhc1']:
             alleles = mhc1alleles
             P.iedbmethod = iedbmethod
@@ -144,7 +145,7 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
         P.predictProteins(df,length=length,names=None,alleles=alleles,
                               label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
-        b = Analysis.getAllBinders(savepath,method=method,n=3)
+        b = analysis.getAllBinders(savepath,method=method,n=3)
         if b is not None:
             binderfile = os.path.join(savepath, 'binders_3.csv')
             b.to_csv(binderfile)
@@ -199,7 +200,7 @@ def getBinders(path,method,n=3,cutoff=0.98):
     if os.path.exists(binderfile):
         b = pd.read_csv(binderfile)
     else:
-        b = Analysis.getAllBinders(path,method=method,n=n,cutoff=cutoff)
+        b = analysis.getAllBinders(path,method=method,n=n,cutoff=cutoff)
         b.to_csv(binderfile)
     return b
 
@@ -209,7 +210,7 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     if not os.path.exists(path):
        return dict(res=None)
     b = getBinders(path,method,n,cutoff)
-    P = Base.getPredictor(method)
+    P = base.getPredictor(method)
     if P.rankascending==1:
         func = np.min
     else:
@@ -220,7 +221,7 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
 
     #get genome and combine data
     gfile = getGenome(gname)
-    g = Genome.genbank2Dataframe(gfile, cds=True)
+    g = genome.genbank2Dataframe(gfile, cds=True)
     res = res.merge(g[['locus_tag','length','gene','product','order']],
                             left_index=True,right_on='locus_tag')
     res['perc_binders'] = res['binders']/res.length*100
@@ -229,7 +230,7 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     if os.path.exists(clusterfile):
         cl = pd.read_csv(clusterfile)
     else:
-        cl = Analysis.findClusters(b, method, dist=9)
+        cl = analysis.findClusters(b, method, dist=9)
         cl.set_index('name').to_csv(clusterfile)
 
     if cl is not None:
@@ -271,13 +272,13 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
         alnrows = pd.read_csv(cachedfile,index_col=0)
     else:
         gfile = getGenome(genome)
-        g = Genome.genbank2Dataframe(gfile, cds=True)
+        g = genome.genbank2Dataframe(gfile, cds=True)
         prot = g[g['locus_tag']==tag]
         if len(prot)==0:
             return dict(res=None)
         seq = prot.translation.head(1).squeeze()
         print tag,seq
-        alnrows = Analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
+        alnrows = analysis.getOrthologs(seq,hitlist_size=400,equery=equery)
         if alnrows is None:
             alnrows=None
         #cache blast results for re-use
@@ -364,15 +365,15 @@ def correlation(label, genome, method1, method2, n=1):
     b2 = getBinders(path2,method2,n=n)
 
     #m = pd.merge(b1, b2, on=['peptide','name','pos'])#, suffixes=['1','2']
-    P1 = Base.getPredictor(method1)
-    P2 = Base.getPredictor(method2)
+    P1 = base.getPredictor(method1)
+    P2 = base.getPredictor(method2)
     g1 = b1.groupby('name').agg({P1.scorekey:[np.mean,np.size,np.max]}).sort()
     g1.columns = g1.columns.get_level_values(1)
     g2 = b2.groupby('name').agg({P2.scorekey:[np.mean,np.size,np.max]}).sort()
     g2.columns = g2.columns.get_level_values(1)
     res = pd.merge(g1, g2, left_index=True,right_index=True)
     gfile = getGenome(genome)
-    gn = Genome.genbank2Dataframe(gfile, cds=True)
+    gn = genome.genbank2Dataframe(gfile, cds=True)
     res = res.merge(gn[['locus_tag','length']],
                             left_index=True,right_on='locus_tag')
     res['perc_x'] = res['size_x']/res.length*100
