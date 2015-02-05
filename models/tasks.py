@@ -2,11 +2,9 @@
 
 import os,sys,types,glob
 import ConfigParser
-#import Base, Genome, Analysis
-from applications.epitopemap.modules.mhcpredict import base, genome, analysis
+from applications.epitopemap.modules.mhcpredict import base, sequtils, analysis
 home = os.path.expanduser("~")
 datapath = os.path.join(request.folder,'static/results')
-genomespath = os.path.join(request.folder,'static/data/genomes')
 
 def doTask():
     import time
@@ -45,7 +43,7 @@ def getGenome(name):
 
 def getTagbyGene(g,gene):
     fname = getGenome(g)
-    df = genome.genbank2Dataframe(fname, cds=True)
+    df = sequtils.genbank2Dataframe(fname, cds=True)
     df = df.drop_duplicates('locus_tag')
     df = df.set_index('locus_tag')
     #if gene name provided we try to override the locus_tag
@@ -61,7 +59,7 @@ def getFeature(g,tag):
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
     fname = getGenome(g)
-    df = genome.genbank2Dataframe(fname, cds=True)
+    df = sequtils.genbank2Dataframe(fname, cds=True)
     df = df.drop_duplicates('locus_tag')
     df = df.set_index('locus_tag')
     keys = df.index
@@ -121,7 +119,7 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
         label = newlabel
     query = db.genomes(db.genomes.name==genome)
     f,gfile = db.genomes.file.retrieve(query.file)
-    df = genome.genbank2Dataframe(gfile, cds=True)
+    df = sequtils.genbank2Dataframe(gfile, cds=True)
     if type(methods) is not types.ListType:
         methods = [methods]
     length=int(length)
@@ -221,7 +219,7 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
 
     #get genome and combine data
     gfile = getGenome(gname)
-    g = genome.genbank2Dataframe(gfile, cds=True)
+    g = sequtils.genbank2Dataframe(gfile, cds=True)
     res = res.merge(g[['locus_tag','length','gene','product','order']],
                             left_index=True,right_on='locus_tag')
     res['perc_binders'] = res['binders']/res.length*100
@@ -272,7 +270,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
         alnrows = pd.read_csv(cachedfile,index_col=0)
     else:
         gfile = getGenome(genome)
-        g = genome.genbank2Dataframe(gfile, cds=True)
+        g = sequtils.genbank2Dataframe(gfile, cds=True)
         prot = g[g['locus_tag']==tag]
         if len(prot)==0:
             return dict(res=None)
@@ -373,7 +371,7 @@ def correlation(label, genome, method1, method2, n=1):
     g2.columns = g2.columns.get_level_values(1)
     res = pd.merge(g1, g2, left_index=True,right_index=True)
     gfile = getGenome(genome)
-    gn = genome.genbank2Dataframe(gfile, cds=True)
+    gn = sequtils.genbank2Dataframe(gfile, cds=True)
     res = res.merge(gn[['locus_tag','length']],
                             left_index=True,right_on='locus_tag')
     res['perc_x'] = res['size_x']/res.length*100

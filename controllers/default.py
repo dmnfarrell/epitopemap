@@ -19,11 +19,8 @@ import matplotlib as mpl
 import bokeh
 #from bokeh.plotting import *
 home = os.path.expanduser("~")
-genomespath = os.path.join(request.folder,'static/data/genomes')
-#datapath = os.path.join(home,'epitopedata')
 datapath = os.path.join(request.folder,'static/results')
-#import Genome, Base, Tepitope, Analysis
-from applications.epitopemap.modules.mhcpredict import base, genome, tepitope
+from applications.epitopemap.modules.mhcpredict import base, sequtils, tepitope
 
 methods = ['tepitope','netmhciipan','iedbmhc1','bcell']#,'threading'] #'iedbmhc2'
 iedbmethods = ['IEDB_recommended','consensus','ann','smm','arb','netmhcpan']
@@ -540,8 +537,8 @@ def genomeview():
     g = request.args[0]
     if len(request.args) == 1:
         gfile = getGenome(g)
-        data = genome.genbank2Dataframe(gfile)
-        summary = genome.genbankSummary(data)
+        data = sequtils.genbank2Dataframe(gfile)
+        summary = sequtils.genbankSummary(data)
         data=data[data.type=='CDS']
         data=data.set_index('locus_tag')
         return dict(genome=g,data=data,summary=summary)
