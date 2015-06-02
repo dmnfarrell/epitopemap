@@ -691,6 +691,7 @@ def selectionForm():
     form.element('input[name=gene]')['_style'] = 'width:130px;'
     return form
 
+@auth.requires_login()
 def quickview():
     """Quickview"""
 
@@ -766,6 +767,7 @@ def show():
 def error():
     return dict()
 
+@auth.requires_login()
 def genomeanalysis():
     """Genome wide analysis of epitope predictions"""
     defaultid = 'results_test'
@@ -887,6 +889,7 @@ def conservationAnalysisForm(defaultid='test'):
             _class="smalltable"), _id="myform", hidden=dict(width=850))
     return form
 
+@auth.requires_login()
 def conservation():
     """Analysis of epitope conservation"""
 
