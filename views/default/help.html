@@ -336,23 +336,24 @@ Follow these steps:
 <li>Go to http://localhost/epitopemap in your browser</li>
 <p>
 
+<h4>Python dependencies</h4>
+Setup currently requires you to install the Python libraries yourself. This is
+a cleaner approach than providing them with the application and is now fairly simple
+on linux. If there is a problem installing the packages with apt-get you can use pip or vice
+versa. Note that bokeh (used for plots) has quite a few dependencies but they will all be
+installed with pip automatically, so don't worry if you see a lot of messages appearing.
+<p>
+On Ubuntu type the following on the command line to install the Python modules:
+<div class="monospace">
+sudo apt-get install python-numpy python-pandas python-matplotlib python-pip
+<br>
+sudo pip install biopython bokeh mpld3
+</div>
+
 <h4>Other software</h4>
 The ncbi-blast+ tools and muscle are needed for conservation analysis. On Ubuntu type:
 <div class="monospace">
 sudo apt-get install ncbi-blast+ muscle
-</div>
-
-<h4>Python dependencies</h4>
-Setup currently requires you to install the Python libraries yourself. This is
-a cleaner approach than providing them with the application and is now simple
-on linux. In addition we recommend you use easy_install or pip to install the packages
-rather than the OS package manager (e.g. apt-get) but both methods should work.
-<p>
-On Ubuntu type the following on the command line to install the Python modules:
-<div class="monospace">
-sudo apt-get install python-pip
-<br>
-sudo pip install numpy pandas matplotlib biopython bokeh mpld3
 </div>
 
 <a name="Programmers"></a>
