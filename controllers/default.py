@@ -615,7 +615,7 @@ def clusterResults():
         results[f] = r
     return dict(results=results)
 
-def search():
+'''def search():
     """Advanced search form"""
 
     form = SQLFORM.factory(
@@ -651,7 +651,7 @@ def search():
         results = db(query).select(orderby=~db.proteins.locus_tag)
         msg = T("%s records found" %count )
 
-    return dict(form=form,msg=msg,results=results)
+    return dict(form=form,msg=msg,results=results)'''
 
 def quicksearch():
     """Non DB search just using paths"""
@@ -1016,6 +1016,43 @@ def jobsubmitted():
     taskid = int(request.vars['id'])
     status = scheduler.task_status(taskid, output=True)
     return dict(taskid=taskid,status=status)
+
+def findForm():
+    """Find form"""
+
+    result={}
+    form = SQLFORM.factory(
+              Field('genome',requires=IS_IN_DB(db, 'genomes.name', zero=None,
+                    multiple=False),default=1,label='genome'),
+              Field('gene', 'string', label='gene',default=''),
+              Field('description', 'string', label='description',default=''),
+              submit_button="Search",
+              _id='findform',_class='myform')
+    form.element('input[name=gene]')['_style'] = 'height:30px;'
+    form.element('input[name=description]')['_style'] = 'height:30px;'
+    return form
+
+def search():
+    form = findForm()
+    msg = T(" ")
+    results=pd.DataFrame()
+    pd.set_option('display.max_colwidth', -1)
+    if form.process().accepted:
+        gene = form.vars.gene
+        desc = form.vars.description
+        if gene == '': gene = '@#!x'
+        if desc == '': desc = '@#!x'
+        gfile = getGenome(form.vars.genome)
+        g = sequtils.genbank2Dataframe(gfile, cds=True)
+        g = g.fillna('')
+        df = g[(g.gene.str.contains(gene, case=False)) |
+                (g['product'].str.contains(desc, case=False))]
+        df = df.drop(['type','note','translation'],1)
+        df = df.set_index('locus_tag')
+        results = df
+        msg = 'found %s proteins' %len(df)
+
+    return dict(form=form,msg=msg,results=results)
 
 @auth.requires_login()
 def test():

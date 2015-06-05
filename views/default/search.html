@@ -1,18 +1,27 @@
 {{=TITLE('Epitopemap search')}}
 {{extend 'layout.html'}}
 
-<h5>Advanced search</h5>
+<div class="row">
+<div class="span2">
 {{=form}}
+</div>
 
-
+<div class="span9 offset1">
 {{=msg}}
-<br>
-<table class="mytable">
-{{for r in sorted(results):}}
-{{a=r['locus_tag']}}
-{{g=r['genome']}}
-<tr>
-<td>{{=A(a,_href=URL('default','protein',args=[id,g,a]),_target=a)}}</td>
-</tr>
-{{pass}}
-</table>
+<div class="scrollingArea" style="width:100%">
+{{=XML(results.to_html(classes="sortable",na_rep='-',escape=False))}}
+</div>
+</div>
+
+<div id='resultdiv' class='span9 offset1'>
+
+</div>
+</div>
+
+<script>
+jQuery('#myform').submit(function() {
+  ajax('{{=URL('default', 'search.load')}}',
+    ['genome','gene'], 'resultdiv');
+  return false;
+});
+</script>

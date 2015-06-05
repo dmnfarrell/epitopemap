@@ -42,6 +42,8 @@ def getGenome(name):
     return filename
 
 def getTagbyGene(g,gene):
+    """Get the locus_tag from the gene name"""
+
     fname = getGenome(g)
     df = sequtils.genbank2Dataframe(fname, cds=True)
     df = df.drop_duplicates('locus_tag')
