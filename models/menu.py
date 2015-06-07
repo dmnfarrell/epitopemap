@@ -39,7 +39,8 @@ def _():
     ctr = request.controller
     response.menu+=[
         (SPAN('Menu',_style='color:yellow'),False, None, [
-            (T('Quick view'),False,URL('default','quickview')),
+            (T('View predictions'),False,URL('default','quickview')),
+            (T('Search'),False,URL('default','search')),
             (T('Submit job'),False,URL('default','submit')),
             (T('Configuration'),False,URL('default','admin')),
             (T('About'),False,URL('default','about')),

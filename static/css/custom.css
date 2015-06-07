@@ -180,8 +180,7 @@ div.monospace {
 	width:100%;
 	border:1px solid #b2a7a7;
 	font-family: monospace;
-	font-size:10px;
-
+	font-size:11px;
 }.sortable table{
     border-collapse: collapse;
     border-spacing: 0;
@@ -194,25 +193,24 @@ div.monospace {
 	margin:1px;padding:2px;
 }
 .sortable th{
-    background-color: #A9E2F3;
+    background-color:  #E0ECF8;
     border-width:0px 0px 0px 0px;
 }
 .sortable tr:nth-child(even){ background-color:#F7F7F7; }
 
 .genometable {
     font-family:monospace;
-	font-size:12px;
-}
+	font-size:13px;
 }.genometable td{
     border-spacing: 0;
-    border:0px solid #b2a7a7;
     border-width:0px 0px 0px 0px;
+    border:0px;
+    max-width: 300px;
     word-wrap: break-word;
 }
 .genometable th{
     background-color: #F1F1F1;
     border-width:0px 0px 0px 0px;
-    word-wrap: break-word;
     width: 150px;
 }
 

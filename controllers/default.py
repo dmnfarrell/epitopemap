@@ -539,8 +539,9 @@ def genomeview():
         gfile = getGenome(g)
         data = sequtils.genbank2Dataframe(gfile)
         summary = sequtils.genbankSummary(data)
-        data=data[data.type=='CDS']
-        data=data.set_index('locus_tag')
+        data = data[data.type=='CDS']
+        data = data.drop(['type','pseudo'],1)
+        #data=data.set_index('locus_tag')
         return dict(genome=g,data=data,summary=summary)
     else:
         return dict()
@@ -614,44 +615,6 @@ def clusterResults():
         r.sort('name',inplace=True)
         results[f] = r
     return dict(results=results)
-
-'''def search():
-    """Advanced search form"""
-
-    form = SQLFORM.factory(
-              Field("genome", requires=IS_IN_DB(db, 'genomes.id', '%(name)s',
-                    zero=None,multiple=False,orderby=~db.genomes.name)),
-                  Field("locus_tag", default='Rv0011c'),
-                  Field("gene", default=''),
-                  Field("product", default='',comment='any words from product field'),
-                  Field("start", type='integer', default='',comment='genomic coords'),
-                  Field("end", type='integer', default=''),
-                  formstyle='table3cols',
-                  submit_button="Search")
-    results={}
-    msg = T(" ")
-    # testing if the form was accepted
-    if form.process().accepted:
-        query = db.proteins.id>0
-        # gathering form submitted values
-        if form.vars.locus_tag :
-            query &= db.proteins.locus_tag == form.vars.locus_tag
-        if form.vars.gene:
-            query &= db.proteins.gene == form.vars.gene
-        if form.vars.type:
-            query &= db.proteins.type == form.vars.type
-        if form.vars.product:
-            query &= db.proteins.product == form.vars.product
-        if form.vars.start:
-            query &= db.proteins.start >= form.vars.start
-        if form.vars.end:
-            query &= db.proteins.end <= form.vars.end
-
-        count = db(query).count()
-        results = db(query).select(orderby=~db.proteins.locus_tag)
-        msg = T("%s records found" %count )
-
-    return dict(form=form,msg=msg,results=results)'''
 
 def quicksearch():
     """Non DB search just using paths"""
@@ -961,7 +924,7 @@ def submissionForm():
             TR(TD(LABEL('current labels:',_for='genome')),
             TD(SELECT(*opts1,_name='label',
                     value='', _style="width:200px;"))),
-            TR(TD(LABEL('new label:',_for='genome')),
+            TR(TD(LABEL('OR new label:',_for='genome')),
             TD(INPUT(_name='newlabel',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('genome:',_for='genome')),
             TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:200px;"))),
@@ -1032,27 +995,42 @@ def findForm():
     form.element('input[name=description]')['_style'] = 'height:30px;'
     return form
 
-def search():
-    form = findForm()
+def doSearch(genome, gene, desc):
+    """Search genbank frame by gene or descr"""
+
+    gfile = getGenome(genome)
+    g = sequtils.genbank2Dataframe(gfile, cds=True)
+    g = g.fillna('')
+    if gene == '' and desc == '':
+        df = g
+    else:
+        if gene == '': gene = '@#!x'
+        if desc == '': desc = '@#!x'
+        df = g[(g.gene.str.contains(gene, case=False)) |
+                (g['product'].str.contains(desc, case=False))]
+    df = df.drop(['type','pseudo','note','translation'],1)
+    df = df.set_index('locus_tag')
+    return df
+
+def find():
+    """Show search results"""
+
     msg = T(" ")
     results=pd.DataFrame()
     pd.set_option('display.max_colwidth', -1)
-    if form.process().accepted:
-        gene = form.vars.gene
-        desc = form.vars.description
-        if gene == '': gene = '@#!x'
-        if desc == '': desc = '@#!x'
-        gfile = getGenome(form.vars.genome)
-        g = sequtils.genbank2Dataframe(gfile, cds=True)
-        g = g.fillna('')
-        df = g[(g.gene.str.contains(gene, case=False)) |
-                (g['product'].str.contains(desc, case=False))]
-        df = df.drop(['type','note','translation'],1)
-        df = df.set_index('locus_tag')
-        results = df
-        msg = 'found %s proteins' %len(df)
+    gene = request.vars.gene
+    desc = request.vars.description
+    genome = request.vars.genome
+    results = doSearch(genome, gene, desc)
+    msg = 'found %s proteins' %len(results)
+    lst = list(results.index)
+    link = A('download results',_href=URL('default','find.csv',extension='',vars=request.vars))
+    return dict(msg=msg,link=link,results=results)
 
-    return dict(form=form,msg=msg,results=results)
+def search():
+    """Search page"""
+    form = findForm()
+    return dict(form=form)
 
 @auth.requires_login()
 def test():

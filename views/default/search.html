@@ -4,12 +4,8 @@
 <div class="row">
 <div class="span2">
 {{=form}}
-</div>
-
-<div class="span9 offset1">
-{{=msg}}
-<div class="scrollingArea" style="width:100%">
-{{=XML(results.to_html(classes="sortable",na_rep='-',escape=False))}}
+<div class="heading">
+<p>Search by gene or description in your genome to find the appropriate locus tags.</p>
 </div>
 </div>
 
@@ -19,9 +15,17 @@
 </div>
 
 <script>
-jQuery('#myform').submit(function() {
-  ajax('{{=URL('default', 'search.load')}}',
-    ['genome','gene'], 'resultdiv');
+jQuery('#findform').submit(function() {
+  $( ".span9" ).empty();
+  $("#resultdiv").html('<div class="ajax-loader"><img src=../static/images/ajax-loader.gif ></div>')
+  return false;
+});
+</script>
+
+<script>
+jQuery('#findform').submit(function() {
+  ajax('{{=URL('default', 'find.load')}}',
+    ['genome','gene','description'], 'resultdiv');
   return false;
 });
 </script>
