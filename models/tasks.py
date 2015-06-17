@@ -3,6 +3,7 @@
 import os,sys,types,glob
 import ConfigParser
 from applications.epitopemap.modules.mhcpredict import base, sequtils, analysis
+import pandas as pd
 home = os.path.expanduser("~")
 datapath = os.path.join(request.folder,'static/results')
 
@@ -107,7 +108,7 @@ def getPredictions(label,genome,tag,q=0.96):
         preds[m] = pred
     return preds, bcell, cutoffs
 
-def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11,
+def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitope',length=11,
                  mhc1alleles=[], drballeles=[], dpqalleles=[], bcellmethod='Bepipred',
                  iedbmethod='IEDB_recommended', **kwargs):
     """Run predictors and save results"""
@@ -119,9 +120,18 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
         names=None
     if newlabel != '':
         label = newlabel
-    query = db.genomes(db.genomes.name==genome)
-    f,gfile = db.genomes.file.retrieve(query.file)
-    df = sequtils.genbank2Dataframe(gfile, cds=True)
+    if genome != '':
+        query = db.genomes(db.genomes.name==genome)
+        f,gfile = db.genomes.file.retrieve(query.file)
+        df = sequtils.genbank2Dataframe(gfile, cds=True)
+    elif fasta != '':
+        #if no genome given use the fasta sequences
+        query = db.sequences(db.sequences.name==fasta)
+        f,ffile = db.sequences.file.retrieve(query.file)
+        df = sequtils.fasta2Dataframe(ffile)
+        genome = 'other'
+    else:
+        return
     if type(methods) is not types.ListType:
         methods = [methods]
     length=int(length)
@@ -134,7 +144,6 @@ def runPredictors(label,genome,newlabel='',names='',methods='tepitope',length=11
         elif method == 'bcell':
             P.iedbmethod = bcellmethod
             alleles = None
-            #P.path = iedbbcellpath
         else:
             alleles = drballeles + dpqalleles
         savepath = os.path.join(datapath, label, genome, method)

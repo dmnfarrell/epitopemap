@@ -67,22 +67,12 @@ db.define_table('predictions',
         Field('identifier','string',required=True),
         Field('user','string',requires=IS_NOT_EMPTY()),
         Field('description','string',requires=IS_NOT_EMPTY()))
-		#Field('path','string',unique=True,requires=IS_NOT_EMPTY()))
 
-db.define_table('proteins',
-        Field('genome','string'),
-		Field('locus_tag','string'),
-        Field('type','string'),
-		Field('protein_id','string'),
-        Field('product','string'),
-		Field('gene','string'),
-		Field('start','integer'),
-        Field('end','integer'),
-        Field('length','integer'),
-		Field('db_xref','string'),
-		Field('note','text'),
-		Field('pseudo','string'),
-		Field('translation','text')	)
+db.define_table('sequences',
+        Field('name','string',required=True),
+        Field('filename'),
+        Field('file','upload'),
+        Field('description','string'))
 
 from gluon.custom_import import track_changes; track_changes(True)
 import sys, os

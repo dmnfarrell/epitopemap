@@ -498,11 +498,42 @@ def protein():
                    previous=previous,next=next)
     return result
 
+def sequences():
+    """Allow user to add fasta sequences instead"""
+
+    uploadform = FORM(
+                   TABLE(TR(TD(LABEL('Identifier:',_for='name')),
+                        TD(INPUT(_name='name',_type='string',_required=True))),
+                     TR(TD(LABEL('Fasta file:')),TD(INPUT(_name='fastafile',_type='file'))),
+                     TR(TD(LABEL('Description:',_for='description')),
+                        TD(INPUT(_name='description',_type='string',_required=False,
+                            _style="width:400px;"))),
+                     TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit'))),
+                     _class="smalltable"), _id="myform")
+
+    if uploadform.accepts(request.vars,formname='upload_form'):
+		fname = request.vars.fastafile.filename
+		uploadform.vars.filename = fname
+		id = db.sequences.insert(name=uploadform.vars.name,
+		                    description=uploadform.vars.description,
+		                    file=uploadform.vars.fastafile,
+		                    filename=uploadform.vars.filename)
+
+    db.sequences.id.readable=False
+    query=((db.sequences.id>0))
+    default_sort_order=[db.sequences.id]
+    links=[lambda row: A('browse',_href=URL('fastaview', args=row.name))]
+    grid = SQLFORM.grid(query=query,  orderby=default_sort_order,
+                create=False, deletable=True, maxtextlength=64, paginate=35,
+                details=True, csv=False, ondelete=myondelete,
+                editable=auth.has_membership('editor_group'),links=links)
+    return dict(grid=grid,form=uploadform)
+
 @auth.requires_login()
 def genomes():
     """Display available genomes and allow upload"""
 
-    formats = ['genbank'] #,'embl','fasta']
+    formats = ['genbank']
     uploadform = FORM(
                    TABLE(TR(TD(LABEL('Identifier:',_for='name')),
                         TD(INPUT(_name='name',_type='string',_required=True))),
@@ -550,15 +581,6 @@ def genomeview():
 def predictions():
     """Manage available predictions"""
 
-    '''
-    if addform.validate():
-        path = addform.vars.path
-        addform.vars.identifier = os.path.basename(path)
-        session.flash = 'form accepted'
-        db.predictions.insert(**dict(addform.vars))
-    if addform.process().accepted:
-        session.flash = 'form accepted'
-    '''
     db.predictions.id.readable=False
     query=((db.predictions.id>0))
     default_sort_order=[db.predictions.id]
@@ -729,6 +751,10 @@ def show():
 
 def error():
     return dict()
+
+def formerror():
+    msg = request.vars.msg
+    return dict(msg=msg)
 
 @auth.requires_login()
 def genomeanalysis():
@@ -904,11 +930,14 @@ def submissionForm():
     """Form for job submission"""
 
     applySettings() #so that paths to predictors work
-    defaultg = 'MTB-H37Rv'
     predids = [p.identifier for p in db().select(db.predictions.ALL)]
     opts1 = [OPTION(i,value=i) for i in predids]
     genomes = [p.name for p in db().select(db.genomes.ALL)]
+    genomes.insert(0,'')
     opts2 = [OPTION(i,value=i) for i in genomes]
+    seqs = [p.name for p in db().select(db.sequences.ALL)]
+    seqs.insert(0,'')
+    opts3 = [OPTION(i,value=i) for i in seqs]
     p1 = base.getPredictor('iedbmhc1')
     mhc1alleles = p1.getMHCIList()
     p2 = base.getPredictor('netmhciipan')
@@ -927,9 +956,12 @@ def submissionForm():
             TR(TD(LABEL('OR new label:',_for='genome')),
             TD(INPUT(_name='newlabel',_type='text',value="",_style="width:200px;"))),
             TR(TD(LABEL('genome:',_for='genome')),
-            TD(SELECT(*opts2,_name='genome',value=defaultg,_style="width:200px;"))),
+            TD(SELECT(*opts2,_name='genome',value='',_style="width:200px;"))),
             TR(TD(LABEL('locus tags:',_for='names')),
             TD(INPUT(_name='names',_type='text',value="",_style="width:200px;"))),
+            TR(TD(LABEL('fasta seqs:',_for='fasta')),
+            TD(SELECT(*opts3,_name='fasta',value='',_style="width:200px;"))),
+
             TR(TD(LABEL('methods:',_for='methods')),
             TD(SELECT(*methods,_name='methods',value='tepitope',_size=4,_style="width:200px;",
                 _multiple=True))),
@@ -945,10 +977,10 @@ def submissionForm():
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=7,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
-            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=7,_style="width:200px;",
+            TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
@@ -964,6 +996,9 @@ def submit():
 
     form = submissionForm()
     if form.process().accepted:
+        if form.vars.genome == '' and form.vars.fasta == '':
+            msg = 'provide a genome OR a sequence'
+            redirect(URL('formerror',vars={'msg':msg}))
         session.flash = 'form accepted'
         task = scheduler.queue_task('runPredictors', pvars=request.vars,
                                     immediate=True, timeout=86400)
