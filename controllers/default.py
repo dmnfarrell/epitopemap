@@ -28,7 +28,7 @@ bcellmethods = ['Chou-Fasman', 'Emini', 'Karplus-Schulz',
                 'Kolaskar-Tongaonkar', 'Parker', 'Bepipred']
 colors = {'tepitope':'green','netmhciipan':'orange',
            'iedbmhc1':'blue','iedbmhc2':'pink','threading':'purple'}
-colormaps={'tepitope':'Greens','netmhciipan':'Reds','iedbmhc2':'Oranges',
+colormaps={'tepitope':'Greens','netmhciipan':'Oranges','iedbmhc2':'Pinks',
                'threading':'Purples','iedbmhc1':'Blues'}
 
 def index():
@@ -146,25 +146,6 @@ def plotBCell(plot,pred,height):
     plot.line(x, y, line_color="red", line_width=2, alpha=0.6,legend='bcell')
     return
 
-def plotLines(preds,tag,width=820,height=None,seqdepot=None,bcell=None):
-    """Plot epitopes as lines"""
-    from bokeh.models import Range1d,HoverTool,ColumnDataSource
-    from bokeh.plotting import Figure
-
-    yrange = Range1d(start=1, end=10)
-    if height==None:
-        height = 130+50*len(preds)
-    plot = Figure(title=tag,title_text_font_size="11pt",plot_width=width, plot_height=height,
-           y_range=yrange,
-           tools="xpan, xwheel_zoom, resize, hover, reset, save",
-           background_fill="#FAFAFA")
-    for m in preds:
-        pred = preds[m]
-        sc = pred.scorekey
-        y=pred.data[sc]
-
-    return
-
 def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcell=None):
     """Plot epitopes as parallel tracks"""
 
@@ -180,7 +161,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         height = 130+10*alls
     yrange = Range1d(start=0, end=alls+3)
     plot = Figure(title=title,title_text_font_size="11pt",plot_width=width, plot_height=height,
-           y_range=yrange, #y_range=ylabels,
+           y_range=yrange,
            y_axis_label='allele',
            tools="xpan, xwheel_zoom, resize, hover, reset, save",
            background_fill="#FAFAFA")
@@ -195,14 +176,15 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     #we plot all rects at once
     x=[];y=[];allele=[];widths=[];clrs=[];peptide=[]
     predictor=[];position=[];score=[];leg=[]
-
+    l=80
     for m in preds:
         pred = preds[m]
         cmap = mpl.cm.get_cmap(colormaps[m])
         df = pred.data
         sckey = pred.scorekey
         pb = pred.getPromiscuousBinders(data=df,n=n)
-        #print pb
+        if len(pb) == 0:
+            continue
         l = pred.getLength()
         grps = df.groupby('allele')
         alleles = grps.groups.keys()
@@ -232,7 +214,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     source = ColumnDataSource(data=dict(x=x,y=y,allele=allele,peptide=peptide,
                                     predictor=predictor,position=position,score=score))
     plot.rect(x,y, width=widths, height=0.8,
-         x_range=Range1d(start=1, end=len(g)+l),
+         #x_range=Range1d(start=1, end=seqlen+l),
          color=clrs,line_color='gray',alpha=0.7,source=source,
          min_border_left=2,min_border_right=2)
 
@@ -244,10 +226,9 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         ("score", "@score"),
         ("predictor", "@predictor"),
     ])
-    #print pred.data.sort()[:20]
+
     seqlen = pred.data.pos.max()+l
     plot.set(x_range=Range1d(start=0, end=seqlen+1))
-
     plot.xaxis.major_label_text_font_size = "8pt"
     plot.xaxis.major_label_text_font_style = "bold"
     plot.ygrid.grid_line_color = None
@@ -255,7 +236,6 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     plot.xaxis.major_label_orientation = np.pi/4
 
     js,html = embedPlot(plot)
-    #print html
     return html
 
 def plotEmpty(width=850):
@@ -306,7 +286,7 @@ def plots():
     if request.vars.perccutoff != None:
         perccutoff=float(request.vars.perccutoff)
     else:
-        perccutoff=0.97
+        perccutoff=0.96
     preds,bcell,cutoffs = getPredictions(label,g,tag,perccutoff)
     if len(preds)==0 or preds==None:
         return dict(error=True)
@@ -316,12 +296,8 @@ def plots():
         seq = feat['translation']
         sd = getSeqDepot(seq)['t']
 
-    if request.vars.kind == None:
-        figure = plotTracks(preds,tag,n=n,title=title,
-                    width=width,height=height,seqdepot=sd,bcell=bcell)
-    else:
-        figure = plotLines(preds,tag,width=width,height=height,seqdepot=sd,bcell=bcell)
-
+    figure = plotTracks(preds,tag,n=n,title=title,
+                width=width,height=height,seqdepot=sd,bcell=bcell)
     return dict(figure=figure,preds=preds,error=False)
 
 def scoredistplots(preds):
@@ -394,8 +370,8 @@ def binders():
 def showSequence(seq,preds):
     """Get html display of binders on sequences"""
 
-    colors = {'tepitope':'#70E2AA','netmhciipan':'#FF8181',
-              'iedbmhc1':'#9DCEFF','iedbmhc2':'orange','threading':'#BCA9F5'}
+    colors = {'tepitope':'#70E2AA','netmhciipan':'orange',
+              'iedbmhc1':'#9DCEFF','iedbmhc2':'pink','threading':'#BCA9F5'}
     l=9 #need to get this from predictors
     seqs=[]
     tabledata=[]
@@ -485,9 +461,12 @@ def protein():
     label = request.args[0]
     g = request.args[1]
     tag = request.args[2]
-    n = 3
-
-    items = getFeature(g,tag)
+    n = 2
+    print g
+    if g == 'other':
+        items = (None,None,'','')
+    else:
+        items = getFeature(g,tag)
     if items != None:
         feature, fastafmt, previous, next = items
     else:
@@ -498,6 +477,7 @@ def protein():
                    previous=previous,next=next)
     return result
 
+@auth.requires_login()
 def sequences():
     """Allow user to add fasta sequences instead"""
 
@@ -655,6 +635,7 @@ def quicksearch():
     return form
 
 def selectionForm():
+    """Quick view form"""
 
     form = SQLFORM.factory(
               Field('label',requires=IS_IN_DB(db, 'predictions.identifier',zero=None,
@@ -665,10 +646,11 @@ def selectionForm():
               Field('gene', 'string', label='gene',default=''),
               Field('n', 'string', label='min alleles',default=3),
               Field('globalcutoff', 'boolean', label='global cutoff',default=True),
-              Field('perccutoff', 'string', label='perc. cutoff',default=.98),
+              Field('perccutoff', 'string', label='perc. cutoff',default=.96),
               Field('annotation', 'boolean', label='annotation',default=False),
               submit_button="Update",
               formstyle='table3cols',_id='myform',_class='myform')
+    form.element('select[name=genome]').insert(0,'other') #always add other
     form.element('input[name=n]')['_style'] = 'width:50px;'
     form.element('input[name=perccutoff]')['_style'] = 'width:50px;'
     #form.element('input[name=scorecutoff]')['_style'] = 'width:50px;'
@@ -701,7 +683,7 @@ def show():
             title = tag+' / '+gene
     print request.vars
     if request.vars.perccutoff == None:
-        cutoff = 0.95
+        cutoff = 0.96
     else:
         cutoff = float(request.vars.perccutoff)
     if request.vars.width == None:
@@ -714,14 +696,22 @@ def show():
         figure = plotEmpty()
     preds,bcell,cutoffs = getPredictions(label,g,tag,cutoff)
 
-    if len(preds)==0:
+    if len(preds) == 0:
         redirect(URL('error'))
 
-    feat, fastafmt, previous, next = getFeature(g,tag)
-    seq = feat['translation']
-    sd=None
-    if request.vars.annotation == 'on':
-        sd = getSeqDepot(seq)['t']
+    if g == 'other':
+        #no genome stuff
+        feat = None; fastafmt=''; previous=''; next=''
+        seq = '' #get the fasta seq
+        sd=None
+    else:
+        feat = None; fastafmt=None
+        feat, fastafmt, previous, next = getFeature(g,tag)
+        seq = feat['translation']
+        sd=None
+        if request.vars.annotation == 'on':
+            sd = getSeqDepot(seq)['t']
+
     figure = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
     #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)

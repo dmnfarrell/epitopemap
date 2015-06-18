@@ -69,7 +69,6 @@ def getFeature(g,tag):
     if tag not in keys:
         return
     row = df.ix[tag]
-    #print row
     seq = row.translation
     prod = row['product']
     rec = SeqRecord(Seq(seq),id=tag,description=prod)

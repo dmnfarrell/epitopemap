@@ -4,10 +4,11 @@
 <div class="span2">
 
 <h4>Table of Contents</h4>
-<li><a href="#Running">Running predictions</a></li>
+<li><a href="#Basics">Basics</a></li>
 <li><a href="#Viewing">Viewing predictions</a></li>
 <li><a href="#Genomewide">Genome wide analysis</a></li>
 <li><a href="#Conservation">Eptiope conservation</a></li>
+<li><a href="#Example">Example</a></li>
 <li><a href="#Administration">Administration</a></li>
 <li><a href="#Installation">Installation</a></li>
 <li><a href="#Programmers">For Programmers</a></li>
@@ -28,8 +29,8 @@ many web2py details since the application is meant to be
 usable without knowledge of the framework. Advanced users can consult the
 {{=A('web2py book',_href='http://web2py.com/book')}} for details.
 
-<a name="Running predictions"></a>
-<h3>Running predictions</h3>
+<a name="Basics"></a>
+<h3>Basics</h3>
 
 <h4>Submission page</h4>
 <p>
@@ -91,13 +92,14 @@ MHCII DP and DQ alleles are for netMHCIIpan only.
 
 <h4>How predictions are stored</h4>
 <p>
-Storage of results uses a very simple method. Results run via the web app are simply added
-to the database recording an identifier. All results are then stored according to the label/identifier
+Storage of results uses a fairly simple method. Results run via the web app are simply added
+to the database recording the identifier only. All results data are then stored according to the label/identifier
 with one directory per genome and then a folder for each prediction method. Inside this is a file
-for each protein prediction as follows.  Each file is stored  in
+for each protein predicted as follows.  Each file is stored  in
 {{=A('MessagePack', _href='http://msgpack.org')}} format, which is a binary format for
 efficient storage). Data is stored in this way so that results can be quickly loaded for a
-specific protein.
+specific protein. Inside each file is a Python data structure storing the scores for every peptide/allele
+in that protein.
 
 Example:
 
@@ -113,22 +115,37 @@ are stored in the static/results folder of the web application.
 <h4>Adding sequences</h4>
 <p>
 Before predictions you need to add your proteins/proteome to the application.
-Annotated protein sequences are added as genbank format though fasta and embl format are
-also to be added. Genbank is used for reasons of consistency and completness.
-Usually these will represent the annotated sequences of a species but any properly
-formatted file can be used that groups the proteins together.
+Annotated protein sequences can currently be added by two methods:
+<p>
+<h5>Genbank format (preferred method) </h5>
+<p>
+Genbank is used for reasons of consistency and completeness.
+The locus tag in the genbank format for each protein is usually a unique identifier and
+short unlike the description field that might be extracted from a fasta file.
+Genbank files contain features such as gene product or location that are also
+useful for identifying the protein.
 Genbank format files for an organism can be found on the
  {{=A('NCBI genomes page',_href='http://www.ncbi.nlm.nih.gov/genome/')}} or downloaded
 {{=A('via ftp',_href='ftp://ftp.ncbi.nih.gov/genomes/')}}.
+</li>
+<p>
+
+<h5>Fasta format </h5> (Choose 'Add protein sequences' from the menu).
+<p>
+Any collection of sequences contained in a fasta file can be added.
+They do not have to be related in any way but might represent some subset of a
+genome or a collection of orthologs. This method relies on correct naming for the
+each sequence in the description line so is not as reliable as the genbank format.
+However it is probably more familiar to users. Any sequences added in this way are
+assigned to the genome 'other'.
 
 <p>
 The program will use the locus tags in the genbank file for each protein. If these are not
 available the gene names are used as locus tags. For fasta inputs the identifier following the ">" is used.
-<b>Genbank or embl format is recommended</b> since fasta files can have non-standard or confusing
+<b>Genbank format is recommended</b> since fasta files can have non-standard or confusing
 ids like gi|31563518|ref|NP_852610.1| which is not very user friendly. Fasta files do not contain
 features present in genbank format such as gene product or location that can be useful for
-identifying the protein.
-Improperly formatted files may not work.
+identifying the protein. Improperly formatted fasta files may not work well.
 
 <a name="Viewing"></a>
 <h3>Viewing predictions</h3>
@@ -274,6 +291,31 @@ The following field names may be useful:
 {{=LI(i)}}
 {{pass}}
 </div>
+
+<a name="Example"></a>
+<h3>Example</h3>
+
+Using the uploaded <b>zaire-ebolavirus</b> data on the public server (http://enzyme.ucd.ie:8080)
+we can show some examples. Prediction data is available under the 'test' id already for this genome.
+locus tag/gene names for this small genome can be viewed at
+{{=A('this link',_href="http://enzyme.ucd.ie:8080/epitopemap/default/genomeview/zaire-ebolavirus")}}
+Or use the search feature. This shows that there are three genes called GP and that using the locus tag
+is needed to identify them properly.
+<p>
+Going to Quickview and entering the gene name 'NP' (ZEBOVgp1) (remember id='test') will show the epitopes for this
+gene. This shows a cluster of epitopes at position 194-199 for example. This covers the peptide
+'GHMMVIFRLMRTNFLI'. Conservation analysis will show that the binder 'HMMVIFRLMRT' is highly conserved.
+This kind of analysis can be applied to other proteins and the results compared to known epitopes. See
+the following pages on the IEDB for more reference:
+
+<li> {{=A('Analysis of Ebola virus envelope glycoprotein (GP)',
+_href="http://iedb.zendesk.com/entries/50012939-Analysis-of-Ebola-virus-envelope-glycoprotein-GP-Prediction-of-HLA-class-II-restricted-T-cell-epitop")}}
+</li>
+<li>
+{{=A('Ebola virus related immune epitope data curated in the IEDB',
+_href="http://help.iedb.org/entries/51011785-Ebola-virus-related-immune-epitope-data-curated-in-the-IEDB")}}
+</li>
+
 
 <a name="Administration"></a>
 <h3>Administration</h3>

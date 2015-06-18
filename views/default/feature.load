@@ -1,5 +1,8 @@
 <div style="width:100%;">
 <table class="mytable">
+{{if feat == None:}}
+{{=T('no data')}}
+{{else:}}
 <tr><th>Gene:</th></tr>
 {{if feat.has_key('gene'):}}
 <tr><td>{{=feat['gene']}}</td></tr>
@@ -21,4 +24,4 @@
 <tr><td>{{=str(feat['start'])+'..'+str(feat['end'])}}</td></tr>
 </table>
 </div>
-
+{{pass}}
