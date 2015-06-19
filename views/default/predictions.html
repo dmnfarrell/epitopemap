@@ -1,11 +1,24 @@
 {{extend 'layout.html'}}
 
-<h4>Manually add results folders </h4>
-<p>Results folders are added to the database whenever a set of predictions is submitted via the
-web interface. Therefore this menu is normally used to delete old predictions.
-However you can also manually add predictions here so that they appear in the drop down menus.
-<i>Results added should exist on the filesystem</i>
+<div class="row">
+<div class="span6">
 
-<h5>Current folders</h5>
+<h4>Available results currently on the file system. </h4>
+
+{{=XML(results.to_html(classes="sortable"))}}
+
+</div>
+
+<div class="span6">
+
+<h4>Manually add results folders </h4>
+<p>Results labels (identifier) are added to the database whenever a set of predictions is submitted via the
+web interface. These are used to separate sets of predictions into groups e.g. for different users etc.
+or for separate studies.
+The database simply keeps track of these labels so they can populate the forms. If there is
+a result label present in the results listed on the left not in the db you can add it here.
+Results labels should exist on the filesystem (i.e. should be in the left table).
+
 {{=grid}}
 
+</div>

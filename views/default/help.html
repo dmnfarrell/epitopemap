@@ -148,6 +148,7 @@ ids like gi|31563518|ref|NP_852610.1| which is not very user friendly. Fasta fil
 features present in genbank format such as gene product or location that can be useful for
 identifying the protein. Improperly formatted fasta files may not work well.
 
+<hr>
 <a name="Viewing"></a>
 <h3>Viewing predictions</h3>
 <p>
@@ -203,7 +204,11 @@ However the easiest way to find and view predictions for a known protein name is
 page which has form for entering the protein details and a few other options.
 
 <h4>Searching for a protein</h4>
+This is done through the search page and is a simple form. Here you can enter keywords like gene name to
+identify proteins of interest from the genome and get the correct locus tag(s) to be used in the
+quickview page etc.
 
+<hr>
 <a name="Genomewide"></a>
 <h3>Genome wide analysis</h3>
 <p>
@@ -293,6 +298,7 @@ The following field names may be useful:
 {{pass}}
 </div>
 
+<hr>
 <a name="Example"></a>
 <h3>Example</h3>
 
@@ -317,7 +323,7 @@ _href="http://iedb.zendesk.com/entries/50012939-Analysis-of-Ebola-virus-envelope
 _href="http://help.iedb.org/entries/51011785-Ebola-virus-related-immune-epitope-data-curated-in-the-IEDB")}}
 </li>
 
-
+<hr>
 <a name="Administration"></a>
 <h3>Administration</h3>
 
@@ -359,12 +365,13 @@ We2py provides a built in system for user accounts and allows authorization to b
 basis. Currently users need to log in to submit and view predictions. New users can register via
 the home page and as admin user you can grant access.
 
+<hr>
 <a name="Installation"></a>
 <h3>Installation</h3>
 <p>
 This application has been built and tested on the
 {{=A('Ubuntu Linux ',_href='http://www.ubuntu.com/')}}
-operating system (version 14.04). web2py and the required Python dependencies are also
+operating system (versions 14.04/15.04). web2py and the required Python dependencies are also
 available on both Windows and Mac OSX also though these have not been fully tested yet.
 We therefore <i> currently recommend running this web app on a linux OS.</i>
 
@@ -403,6 +410,14 @@ The ncbi-blast+ tools and muscle are needed for conservation analysis. On Ubuntu
 sudo apt-get install ncbi-blast+ muscle
 </div>
 
+<h3>Use a virtual appliance</h3>
+The other option for non-linux users is to install a Virtual machine OS with all software
+pre-installed and run it from within VirtualBox on your own computer/server. This removes the need
+to worry about any installation at all.
+We have a virtual machine using the pre-packaged Turnkey linux distribution. We will make this
+virtual image available on request.
+
+<hr>
 <a name="Programmers"></a>
 <h3>For Programmers</h3>
 <h4>Python mhcpredict library</h4>
@@ -411,6 +426,7 @@ at {{=A('this github page',_href='https://github.com/dmnfarrell/mhcpredict')}}. 
 to implement other prediction methods using these classes and add them to the web application.
 See instructions on the github page.
 
+<hr>
 <a name="References"></a>
 
 <h3>References</h3>

@@ -559,7 +559,19 @@ def genomeview():
 
 @auth.requires_login()
 def predictions():
-    """Manage available predictions"""
+    """Parse results folder to show the actual data existing on file system
+       might not sync with the results ids."""
+
+    vals=[]
+    for root, subdirs, files in os.walk(datapath):
+        if not subdirs:
+            p1,method = os.path.split(root)
+            p2,genome = os.path.split(p1)
+            predid = os.path.basename(p2)
+            #print method,genome,predid
+            vals.append((predid, genome, method, len(files)))
+    df = pd.DataFrame(vals,columns=['identifier','genome','method','sequences'])
+    #df = df.set_index('pred. id')
 
     db.predictions.id.readable=False
     query=((db.predictions.id>0))
@@ -569,7 +581,7 @@ def predictions():
                 paginate=20,details=True, csv=False, ondelete=myondelete,
                 editable=auth.has_membership('editor_group'))
 
-    return dict(grid=grid)
+    return dict(results=df, grid=grid)
 
 def myondelete(table, id):
     form = FORM.confirm('Are you sure?')
