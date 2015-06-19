@@ -66,6 +66,8 @@
        uncomment to load jquery-ui //-->
   <noscript><link href="{{=URL('static', 'css/web2py_bootstrap_nojs.css')}}" rel="stylesheet" type="text/css" /></noscript>
   {{block head}}{{end}}
+  <link href='http://fonts.googleapis.com/css?family=Droid+Sans:300,400,700' rel='stylesheet' type='text/css'>
+
 </head>
 
 <body>
@@ -92,10 +94,9 @@
     </div>
   </div><!--/top navbar -->
 
-  <div class="container">
     <!-- Masthead ================================================== -->
     <header class="mastheader row" id="header"
-      style="background-image: url({{=URL('static','images/pattern2.png')}});">
+      style="background-image: url({{=URL('static','images/pattern1.png')}});">
       {{if response.title:}}
         <div class="span12">
             <div class="header">
@@ -107,6 +108,9 @@
         </div>
 	{{pass}}
     </header>
+
+   <!-- Main body here -->
+  <div class="container">
 
     <section id="main" class="main row">
         {{if left_sidebar_enabled:}}

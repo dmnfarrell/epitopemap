@@ -37,18 +37,25 @@ div.flash.flash-top,div.flash.flash-top:hover{
   border-radius:0;
   opacity:1;
 }
-#header{margin-top:0px;}
+#header{
+    margin-top:0px;
+    -webkit-box-shadow: 0px 2px 4px rgba(100, 100, 100, 0.49);
+    -moz-box-shadow:    0px 2px 4px rgba(100, 100, 100, 0.49);
+    box-shadow:         0px 2px 4px rgba(100, 100, 100, 0.49);
+}
 
 .mastheader h1 {
-  margin-bottom:3px;
-  font-size:81px;
   font-weight:bold;
   letter-spacing:-1px;
   line-height:1;
-  font-size:50px;
+  font-size:44px;
+  margin: 5px auto;
+  width: 80%;
 }
 .mastheader small {
-  font-size:20px;
+  font-family: "Droid Sans", Arial;
+  color: #3B170B;
+  font-size:18px;
   font-weight:300;
 }
 /* auth navbar - primitive style */
