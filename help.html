@@ -1,0 +1,503 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Epitopemap Help</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <div class="wrapper">
+      <header>
+        <h1>Epitopemap</h1>
+        <p>A web application for visualizing MHC binding predictions</p>
+
+        <p><a href='index.html'>Home page </a>
+        </h3>
+
+      </header>
+      <section>
+      <div>
+        <h4>Table of Contents</h4>
+        <li><a href="#Basics">Basics</a></li>
+        <li><a href="#Viewing">Viewing predictions</a></li>
+        <li><a href="#Genomewide">Genome wide analysis</a></li>
+        <li><a href="#Conservation">Eptiope conservation</a></li>
+        <li><a href="#Example">Example</a></li>
+        <li><a href="#Administration">Administration</a></li>
+        <li><a href="#Installation">Installation</a></li>
+        <li><a href="#Programmers">For Programmers</a></li>
+        <li><a href="#References">References</a></li>
+      </div>
+<p>
+<hr>
+<h3>Background</h3>
+This is a web interface for running and visualising epitope predictions (currently MHC binding) and
+allow integrated analysis for entire proteomes. The app is designed to address the limitations
+of current web servers for epitope prediction. Limits on the sequence size which can be submitted
+to website servers generally only allows single protein analysis and thus precludes
+integrated analysis for a whole proteome.
+<p>
+This application is built on the web2py platform. This manual does not give
+many web2py details since the application is meant to be
+usable without knowledge of the framework. Advanced users can consult the
+<a href="http://web2py.com/book">web2py book</a> for details.
+
+<a name="Basics"></a>
+<h3>Basics</h3>
+
+<h4>Submission page</h4>
+<p>
+The binding predictions are made by submitting jobs via the submission form. Several
+prediction methods can be chosen and will be run in turn. Once the submit buttone is
+pressed the user is directed to another page indicating the task id and status shown
+as QUEUED. The id is unique identifier for the job. Refreshing the page will show the
+task progress moving from ASSIGNED to RUNNING then COMPLETED once the job is done.
+This page can be retrieved if you know the job id with this URL:
+<div class="monospace">
+http://localhost/epitopemap/default/jobsubmitted?id=x
+</div>
+
+<p>
+Jobs are queued and run in the background using the web2py scheduler system and are run
+consecutively. However it is possible to create multiple workers when web2py is started and
+thus multiple queues. You could do this if you are using a computer with multiple
+processors and want to make better use of them.
+<p>
+The time taken to run predictions depends on the number of alleles, number of proteins and
+the prediction method. Tepitope is fastest and will take 15-20 minutes to do a genome with
+~4000 proteins for each allele. NetMHCIIpan will be noticeably slower and may take several
+hours.
+
+<h4>Prediction methods</h4>
+There are many MHC binding (T cell), B cell and other predictors available. Those currently
+supported by this application are due to their popularity and reliability. We primarily
+focus on MHC binding prediction at this time.
+<p>
+The Tepitope method is our own Python implementation of TEPITOPEPan and requires no external program
+to run. netMHCIIpan must be downloaded separately from the website and installed on your system.
+The process is quite simple. The same applies for the IEDB tools. Both of these tools are free
+for academic use but we do not distribute them with this app.
+Remember that this app is designed as an integrated way to use these tools but
+is not meant to replace them in all respects. The netMHCIIpan server at the CBS
+should be consulted for some more detailed options on using that program.
+
+Here are the available methods with download links for external tools:
+<p>
+<li>
+<a href="http://www.biokdd.fudan.edu.cn/Service/TEPITOPEpan/TEPITOPEpan.html">TEPITOPEPan</a>
+(Implemented internally, so NO download required).
+</li>
+<li>
+<a href="http://www.cbs.dtu.dk/services/NetMHCIIpan/">NetMHCIIpan</a>
+</li>
+<li><a href="http://tools.immuneepitope.org/mhci/download/">IEDB MHCI tools</a></li>
+
+<li><a href="http://tools.immuneepitope.org/bcell/download/">IEDB BCell tools</a> </li>
+
+<h4>Selection of alleles</h4>
+<p>
+Selection of which alleles to run will be entirely dependent upon the end results required. Users
+must have a particular goal in mind when making predictions. Simply using all alleles will NOT
+be helpful and will be very slow since there are so many human alleles.
+<p>
+Some alleles are not available for all methods and will be ignored for those methods.
+MHCII DP and DQ alleles are for netMHCIIpan only.
+
+<h4>How predictions are stored</h4>
+<p>
+Storage of results uses a fairly simple method. Results run via the web app are simply added
+to the database recording the identifier only. All results data are then stored according to the label/identifier
+with one directory per genome and then a folder for each prediction method. Inside this is a file
+for each protein predicted as follows.  Each file is stored  in
+<a href="http://msgpack.org">MessagePack</a> format, which is a binary format for
+efficient storage). Data is stored in this way so that results can be quickly loaded for a
+specific protein. Inside each file is a Python data structure storing the scores for every peptide/allele
+in that protein.
+
+Example:
+
+<div class="monospace">
+<p>../static/results/identifier/genome/method/locus_tag.mpk
+<p>e.g:
+<p>../static/results/testresults/Mbovis/tepitope/Mb0012.mpk
+</div>
+<br>
+This example is for tepitope prediction data for the protein Mb0012 in Mbovis. All results
+are stored in the static/results folder of the web application.
+
+<h4>Adding sequences</h4>
+<p>
+Before predictions you need to add your proteins/proteome to the application.
+Annotated protein sequences can currently be added by two methods:
+<p>
+<h5>Genbank format (preferred method) </h5>
+<p>
+Genbank is used for reasons of consistency and completeness.
+The locus tag in the genbank format for each protein is usually a unique identifier and
+short unlike the description field that might be extracted from a fasta file.
+Genbank files contain features such as gene product or location that are also
+useful for identifying the protein.
+Genbank format files for an organism can be found on the
+ <a href="http://www.ncbi.nlm.nih.gov/genome/">NCBI genomes page</a> or downloaded
+<a href="ftp://ftp.ncbi.nih.gov/genomes/">via ftp</a>.
+</li>
+<p>
+
+<h5>Fasta format </h5> (Choose 'Add protein sequences' from the menu).
+<p>
+Any collection of sequences contained in a fasta file can be added.
+They do not have to be related in any way but might represent some subset of a
+genome or a collection of orthologs. This method relies on correct naming for the
+each sequence in the description line so is not as reliable as the genbank format.
+However it is probably more familiar to users. Any sequences added in this way are
+assigned to the genome 'other'.
+
+<p>
+The program will use the locus tags in the genbank file for each protein. If these are not
+available the gene names are used as locus tags. For fasta inputs the identifier following the ">" is used.
+<b>Genbank format is recommended</b> since fasta files can have non-standard or confusing
+ids like gi|31563518|ref|NP_852610.1| which is not very user friendly. Fasta files do not contain
+features present in genbank format such as gene product or location that can be useful for
+identifying the protein. Improperly formatted fasta files may not work well.
+
+<hr>
+<a name="Viewing"></a>
+<h3>Viewing predictions</h3>
+<p>
+Every set of predictions for a genome (or maybe just a group of protein sequences) has an identifier
+associated with it. This is simply a string identifying a set of binding predictions run with the
+same parameters, e.g. a specific set of alleles. This 'prediction id' simply groups your predictions
+together in the same folder and can be helpful to separate your predictions from another set if
+you are working on the same proteins. So if you want a different set of predictions for the
+same proteins then create a new label/id.
+
+<h4>Quick search</h4>
+This form on the home page allows you to get a quick preview and see if a particular
+protein is present and has some predictions made. If there are results available a small
+plot will be displayed in the page. Either the locus tag or gene name can be
+used but only the tag is unique. If there are proteins with the same gene name in the source
+annotation then only the first one is used here. The gene name overrides the locus tag in this
+form.
+
+<h4>Quick view</h4>
+This is the usual interface for viewing results. It consists of a form on the left side which
+updates the results on the right panel of the page when the 'update' button is pressed.
+The id,genome and required protein tag must all be entered correctly.
+
+<h4>Binding prediction plots</h4>
+<p>
+Predictors will usually make multiple scoring predictions for each allele for an n-mer set of binders.
+ This information can be hard to display in a single plot. The purpose of the plot is to allow
+the user to quickly visualise where epitopes might be along the sequence and compare all alleles and
+ different methods in one plot. The default representation is a set of tracks with bars
+ representing predicted binders for each allele ordered by position on the sequence
+ as shown below. Plots can be zoomed in and out and panned left right.
+<p>
+<img src="https://raw.githubusercontent.com/dmnfarrell/epitopemap/master/static/images/help_plots.png" width=600>
+
+
+<h4>Cut-offs/thresholds</h4>
+
+Selection of predicted binders can be done based on the percentile rank or MHC binding affinity
+(or whatever score is a proxy for binding). It has also been shown that absolute binding
+affinity threshold correlates better with immunogenicity and MHC allele-specific thresholds
+should be used to improve correlations.
+
+For MHC-II the IEDB currently recommends making selections based on a consensus percentile rank of the top 10%.
+See <a href="http://help.iedb.org/entries/23854373-Selecting-thresholds-cut-offs-for-MHC-class-I-and-II-binding-predictions">this iedb help page</a>
+for more information.
+
+<h4>Using fixed URIs</h4>
+<div class="monospace">
+http://localhost/epitopemap/default/protein/results_bovine/Mbovis/Mb0012
+</div>
+<br>
+The protein URIs are structured so that they can be entered in the address bar if required.
+However the easiest way to find and view predictions for a known protein name is via the <b>quickview</b>
+page which has form for entering the protein details and a few other options.
+
+<h4>Searching for a protein</h4>
+This is done through the search page and is a simple form. Here you can enter keywords like gene name to
+identify proteins of interest from the genome and get the correct locus tag(s) to be used in the
+quickview page etc.
+
+<hr>
+<a name="Genomewide"></a>
+<h3>Genome wide analysis</h3>
+<p>
+This page performs an analysis of all proteins to find the top binders found in
+n alleles. A global percentage cutoff can also be chosen. This allows a quick overview
+of the proteins with highest percentage of binders and those with epitopes that cluster
+together. The result is a table that can be sorted according to various metrics
+such as the number of binders per unit length of each protein or the number and
+density of epitope clusters.
+<p>
+Explanation of results table columns:
+<li>mean: mean score for binders in that protein</li>
+<li>size: number of binders found in protein</li>
+<li>amax: max score</li>
+<li>length: length of protein</li>
+<li>order: order in genome annotation (for genbank files)</li>
+<li>perc: percentage of binders per protein length</li>
+<li>density: highest density epitope cluster found</li>
+<p>
+<p>
+Two additional tables showing the top peptides and clusters are also produced.
+
+<a name="Conservation"></a>
+<h3>Epitope conservation analysis</h3>
+<p>
+This interface allows you to get an estimate of how well conserved a predicted epitope is across a
+given set of sequences at a certain identity level.
+<p>
+Orthologs for the sequence are first retrieved using an online blast. This can take
+up to several minutes but results are saved for later use.
+Once the alignments are returned the conservation of each epitope can be calculated. This is
+defined as <b>the percentage of sequences where the epitope is present out of the total aligned</b>. The
+set of sequences can be chosen based on a desired identity cutoff or taxon specification. For
+example, the sequences may constitute all orthologs within a bacterial species or just a set of
+strains.
+
+<h4>Results</h4>
+<p>
+Results are given as a table of all binders with >n alleles and their percentage
+conservation at that identity level. In addition a plot showing the variation of
+this value with cutoff identity gives an indication of how well an epitope is conserved
+across species/strains. This will be context dependent.
+
+<h4>BLAST options</h4>
+Our method uses the NCBI online Blast service to retrieve orthologous matches. By default
+all matches are retrieved with an expect value lower than 10 and the sequences can then be
+filtered by percentage identity. It may be preferable or necessary to refine blast queries
+to narrow down the sequence set to a specific taxon or species.
+<p>
+This can be done using the entrez query text box (empty by default). This restricts the
+search to a subset of entries from the nr protein database fitting the requirement
+of the Entrez query.
+For example, to restrict the results to Actinobacteria we would use: <i>txid201174[ORGN]</i>.
+
+See <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#entrez_query">this page</a>
+for more information.
+
+<p>
+The following field names may be useful:
+<div class="monospace">
+
+
+<li>ALL, All Fields, All terms from all searchable fields</li>
+
+<li>UID, UID, Unique number assigned to each sequence</li>
+
+<li>FILT, Filter, Limits the records</li>
+
+<li>WORD, Text Word, Free text associated with record</li>
+
+<li>TITL, Title, Words in definition line</li>
+
+<li>KYWD, Keyword, Nonstandardized terms provided by submitter</li>
+
+<li>AUTH, Author, Author(s) of publication</li>
+
+<li>JOUR, Journal, Journal abbreviation of publication</li>
+
+<li>VOL, Volume, Volume number of publication</li>
+
+<li>ORGN, Organism, Scientific and common names of organism, and all higher levels of taxonomy</li>
+
+<li>ACCN, Accession, Accession number of sequence</li>
+
+<li>PACC, Primary Accession, Does not include retired secondary accessions</li>
+
+<li>GENE, Gene Name, Name of gene associated with sequence</li>
+
+<li>PROT, Protein Name, Name of protein associated with sequence</li>
+
+<li>ECNO, EC/RN Number, EC number for enzyme or CAS registry number</li>
+
+<li>PDAT, Publication Date, Date sequence added to GenBank</li>
+
+<li>MDAT, Modification Date, Date of last update</li>
+
+<li>SUBS, Substance Name, CAS chemical name or MEDLINE Substance Name</li>
+
+<li>PROP, Properties, Classification by source qualifiers and molecule type</li>
+
+<li>SQID, SeqID String, String identifier for sequence</li>
+
+<li>GPRJ, Genome Project, Genome Project</li>
+
+<li>SLEN, Sequence Length, Length of sequence</li>
+
+<li>FKEY, Feature key, Feature annotated on sequence</li>
+
+<li>ORGL, Organelle, Organelle</li>
+
+</div>
+
+<hr>
+<a name="Example"></a>
+<h3>Example</h3>
+
+Using the uploaded <b>zaire-ebolavirus</b> data on the public server (http://enzyme.ucd.ie:8080)
+we can show some examples. Prediction data is available under the 'test' id already for this genome.
+locus tag/gene names for this small genome can be viewed at
+<a href="http://enzyme.ucd.ie:8080/epitopemap/default/genomeview/zaire-ebolavirus">this link</a>
+Or use the search feature. This shows that there are three genes called GP and that using the locus tag
+is needed to identify them properly.
+<p>
+Going to Quickview and entering the gene name 'NP' (ZEBOVgp1) (remember id='test') will show the epitopes for this
+gene. This shows a cluster of epitopes at position 194-199 for example. This covers the peptide
+'GHMMVIFRLMRTNFLI'. Conservation analysis will show that the binder 'HMMVIFRLMRT' is highly conserved.
+This kind of analysis can be applied to other proteins and the results compared to known epitopes. See
+the following pages on the IEDB for more reference:
+
+<li> <a href="http://iedb.zendesk.com/entries/50012939-Analysis-of-Ebola-virus-envelope-glycoprotein-GP-Prediction-of-HLA-class-II-restricted-T-cell-epitop">Analysis of Ebola virus envelope glycoprotein (GP)</a>
+</li>
+<li>
+<a href="http://help.iedb.org/entries/51011785-Ebola-virus-related-immune-epitope-data-curated-in-the-IEDB">Ebola virus related immune epitope data curated in the IEDB</a>
+</li>
+
+<hr>
+<a name="Administration"></a>
+<h3>Administration</h3>
+
+<h4>Paths to binaries</h4>
+The IEDB tools and/or netMHCIIpan distributions are required to be installed locally
+for the web application to use them. To ensure that these programs can be found you can
+the path to the install folders here.
+
+<h4>Add/remove genomes</h4>
+See the instructions for adding sequences above.
+
+<h4>Add/remove predictions</h4>
+A row with the identifier is added to the database whenever a set of predictions is submitted
+with a new id. Therefore this menu is normally only used to delete old predictions. Old results
+should then be deleted manually from the filesystem.
+
+<h4>Starting the server</h4>
+The most simple way to run the application is to use the built-in rocket server.
+Non-root users will have problems running the server on 'priviledged' ports (over 1024)
+so we recommend using a high port like 8000 and running as your own user. It is possible
+to run as root using sudo but not recommended.
+The server is started by typing the following command from inside the web2py folder:
+<div class="monospace">
+python web2py.py -i localhost -a password -p 8000 -K epitopemap -X
+</div>
+where<br>
+-i is the web address<br>
+-p is the port<br>
+-K specifies the app for the scheduler<br>
+-a is the admin password<br>
+
+For servers with a high traffic production environment it is possible to
+deploy web2py behind Apache. Advanced users can consult the
+<a href="http://web2py.com/books/default/chapter/29/13/deployment-recipes">deployment recipes</a>
+in the web2py book.
+
+<h4>Security</h4>
+We2py provides a built in system for user accounts and allows authorization to be done on a page
+basis. Currently users need to log in to submit and view predictions. New users can register via
+the home page and as admin user you can grant access.
+
+<hr>
+<a name="Installation"></a>
+<h3>Installation</h3>
+<p>
+This application has been built and tested on the
+<a href="http://www.ubuntu.com/">Ubuntu Linux </a>
+operating system (versions 14.04/15.04). web2py and the required Python dependencies are also
+available on both Windows and Mac OSX also though these have not been fully tested yet.
+We therefore <i> currently recommend running this web app on a linux OS.</i>
+
+Follow these steps:
+<li>Install web2py, which can be downloaded
+<a href="http://www.web2py.com/init/default/download">here</a></li>
+<li>Unzip web2py and place in the folder where you wish to run it</li>
+<li>Download the epitopemap files
+<a href="https://github.com/dmnfarrell/epitopemap/zipball/master">here</a> </li>
+<li>Unzip epitopemap and place under web2py/applications </li>
+<li>Start the server as outlined above</li>
+<li>Go to http://localhost/epitopemap in your browser</li>
+<p>
+
+<h4>Python dependencies</h4>
+Setup currently requires you to install the Python libraries yourself. This is
+a cleaner approach than providing them with the application and is now fairly simple
+on linux. If there is a problem installing the packages with apt-get you can use pip or vice
+versa. Note that bokeh (used for plots) has quite a few dependencies but they will all be
+installed with pip automatically, so don't worry if you see a lot of messages appearing.
+<p>
+On Ubuntu type the following on the command line to install the Python modules:
+<div class="monospace">
+sudo apt-get install python-pip tcsh
+<br>
+sudo pip install numpy pandas biopython bokeh mpld3
+<br>
+#or
+<br>
+sudo apt-get install python-numpy python-pandas python-matplotlib
+</div>
+
+<h4>Other software</h4>
+The ncbi-blast+ tools and muscle are needed for conservation analysis. On Ubuntu type:
+<div class="monospace">
+sudo apt-get install ncbi-blast+ muscle
+</div>
+
+<h3>Use a virtual appliance</h3>
+The other option for non-linux users is to install a Virtual machine OS with all software
+pre-installed and run it from within VirtualBox on your own computer/server. This removes the need
+to worry about any installation at all.
+We have a virtual machine using the pre-packaged Turnkey linux distribution. We will make this
+virtual image available on request.
+
+<hr>
+<a name="Programmers"></a>
+<h3>For Programmers</h3>
+<h4>Python mhcpredict library</h4>
+The Python Predictor class and other modules used to implement the prediction routines are available
+at <a href="https://github.com/dmnfarrell/mhcpredict">this github page</a>. It is possible
+to implement other prediction methods using these classes and add them to the web application.
+See instructions on the github page.
+
+<hr>
+<a name="References"></a>
+
+<h3>References</h3>
+The following papers provide some background to the field:
+
+<li>
+The utility and limitations of current web-available algorithms to predict
+peptides recognized by CD4 T cells in response to pathogen infection.
+Chaves et al. J Immunol. May 1, 2012; 188(9): 4235–4248.
+<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3331894">link</a>
+</li>
+
+<li>
+Predictions versus high-throughput experiments in T-cell epitope discovery:
+competition or synergy? Expert Review Vaccines, 11(1), 43–54. Lundegaard et al. 2012.
+<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3297080">link</a>
+</li>
+
+<li>
+Development of an epitope conservancy analysis tool to facilitate the design
+ of epitope-based diagnostics and vaccines. BMC bioinformatics 8, 361 (2007). Bui et al.
+<a href="http://www.biomedcentral.com/1471-2105/8/361">link</a>
+</li>
+
+<li>
+HLA class I alleles are associated with peptide-binding repertoires of different size,
+affinity, and immunogenicity.  Journal of Immunology 2013, 191(12):5831-5839. Paul et al.
+<a href="http://www.ncbi.nlm.nih.gov/pubmed/24190657">link</a>
+</li>
+
+</div>
+</div>
+
+

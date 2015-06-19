@@ -2,14 +2,14 @@
 
 body {
   padding:20px;
-  font:15px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color:#222240;
+  font:17px/1.2 "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color:#12240;
   font-weight:300;
 }
 
 h1, h2, h3, h4, h5, h6 {
   color:#222;
-  margin:0 0 20px;
+  margin:2 2 20px;
 }
 
 p, ul, ol, table, pre, dl {
@@ -22,6 +22,7 @@ h1, h2, h3 {
 
 h1 {
   font-size:28px;
+
 }
 
 h2 {
@@ -160,7 +161,7 @@ header ul a strong {
 }
 
 section {
-  width:500px;
+  width:550px;
   float:right;
   padding-bottom:50px;
 }
@@ -252,4 +253,13 @@ footer {
     font-size:12pt;
     color:#444;
   }
+}
+
+div.monospace {
+    margin:3px;
+    padding:3px;
+	font-size:14px;
+    font-family:monospace;
+    font-style:bold;
+    background: #E6F2FF;
 }
