@@ -42,6 +42,14 @@ def getGenome(name):
     filename = os.path.join(request.folder,'uploads',record.file)
     return filename
 
+def getFasta(name):
+    """Get a fasta file from db"""
+
+    query = db.sequences(db.sequences.name==name)
+    print db.sequences(db.sequences.id>0)
+    f,ffile = db.sequences.file.retrieve(query.file)
+    return ffile
+
 def getTagbyGene(g,gene):
     """Get the locus_tag from the gene name"""
 
@@ -56,9 +64,28 @@ def getTagbyGene(g,gene):
     else:
         return
 
+def doSearch(genome, gene, desc):
+    """Search genbank frame by gene or descr"""
+
+    gfile = getGenome(genome)
+    g = sequtils.genbank2Dataframe(gfile, cds=True)
+    g = g.fillna('')
+    if gene == '' and desc == '':
+        df = g
+    else:
+        if gene == '': gene = '@#!x'
+        if desc == '': desc = '@#!x'
+        df = g[(g.gene.str.contains(gene, case=False)) |
+                (g['product'].str.contains(desc, case=False))]
+    df = df.drop(['type','pseudo','note','translation'],1)
+    df = df.set_index('locus_tag')
+    return df
+
 def getFeature(g,tag):
     """Get gene feature from stored genbank file"""
 
+    if g == 'other':
+        return None,None,None,None
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
     fname = getGenome(g)
@@ -267,7 +294,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
     cachedfile = os.path.join(blastpath, '%s_%s.csv' %(genome,tag))
 
     #get predictions
-    preds, bcell, cutoffs = getPredictions(label,genome,tag,q=0.97)
+    preds, bcell, cutoffs = getPredictions(label,genome,tag,q=0.96)
     if not preds.has_key(method):
         return 1
     pred = preds[method]
@@ -279,9 +306,15 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
         print 'using %s' %cachedfile
         alnrows = pd.read_csv(cachedfile,index_col=0)
     else:
-        gfile = getGenome(genome)
-        g = sequtils.genbank2Dataframe(gfile, cds=True)
-        prot = g[g['locus_tag']==tag]
+        if genome != 'other':
+            gfile = getGenome(genome)
+            g = sequtils.genbank2Dataframe(gfile, cds=True)
+            prot = g[g['locus_tag']==tag]
+        else:
+            ffile = getFasta(genome)
+            g = sequtils.fasta2Dataframe(ffile)
+            prot = g[g['locus_tag']==tag]
+
         if len(prot)==0:
             return dict(res=None)
         seq = prot.translation.head(1).squeeze()

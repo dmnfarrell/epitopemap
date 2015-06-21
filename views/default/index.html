@@ -11,11 +11,12 @@
 {{pass}}
 
 {{actions = (('View predictions','quickview'),('Submit job','submit'),
-            ('Search','search'),
-	      ('Add/remove genomes','genomes'), ('Add protein sequences','sequences'),
+            ('Find protein','search'),
+	      ('Add/view genomes','genomes'), ('Add/view sequences','sequences'),
+	      ('Find experimental data','datasourcesearch'),
 	      ('Genome analysis','genomeanalysis'),
 	      ('Epitope conservation','conservation'),
-	      ('Configuration','admin'), ('Citation','citation') ) }}
+	      ('Configuration','admin')) }}
 
 {{for a in actions:}}
 <li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>

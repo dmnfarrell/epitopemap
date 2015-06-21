@@ -1,0 +1,32 @@
+{{=TITLE('Data Sources search')}}
+{{extend 'layout.html'}}
+
+<div class="row">
+<div class="span2">
+{{=form}}
+<div class="heading">
+<p>Search commonly used immunology and bioinformatics datasets for epitopes
+related to your antigen/organism.</p>
+</div>
+</div>
+
+<div id='resultdiv' class='span9 offset1'>
+
+</div>
+</div>
+
+<script>
+jQuery('#iedbform').submit(function() {
+  $( ".span9" ).empty();
+  $("#resultdiv").html('<div class="ajax-loader"><img src=../static/images/ajax-loader.gif ></div>')
+  return false;
+});
+</script>
+
+<script>
+jQuery('#iedbform').submit(function() {
+  ajax('{{=URL('default', 'datasource.load')}}',
+    ['database','antigen','mhc_class'], 'resultdiv');
+  return false;
+});
+</script>

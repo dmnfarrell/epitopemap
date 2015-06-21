@@ -8,9 +8,11 @@
 <li><a href="#Viewing">Viewing predictions</a></li>
 <li><a href="#Genomewide">Genome wide analysis</a></li>
 <li><a href="#Conservation">Eptiope conservation</a></li>
+<li><a href="#Datasources">Find experimental data</a></li>
 <li><a href="#Example">Example</a></li>
 <li><a href="#Administration">Administration</a></li>
 <li><a href="#Installation">Installation</a></li>
+<li><a href="#Virtual Appliance">Virtual Appliance</a></li>
 <li><a href="#Programmers">For Programmers</a></li>
 <li><a href="#References">References</a></li>
 </div>
@@ -324,6 +326,19 @@ _href="http://help.iedb.org/entries/51011785-Ebola-virus-related-immune-epitope-
 </li>
 
 <hr>
+<a name="Datasources"></a>
+<h3>Find experimental data</h3>
+
+Experimental data characterizing antibody and T cell epitopes studied in humans
+and other animal species is important for benchmarking predictions and cross checking during
+vaccine development. The main source for this data is the {{=A('IEDB', _href="http://www.iedb.org/")}}.
+We have a basic search interface for accessing this data using the
+{{=A('pepdata', _href="https://github.com/hammerlab/pepdata")}} library. This is a
+Python interface to commonly used immunology and bioinformatics datasets
+(i.e. IEDB, cancer antigens, TCGA mutant peptides). In future this will allow users to copy the
+search results to overlay it with the predictions.
+
+<hr>
 <a name="Administration"></a>
 <h3>Administration</h3>
 
@@ -410,6 +425,8 @@ The ncbi-blast+ tools and muscle are needed for conservation analysis. On Ubuntu
 sudo apt-get install ncbi-blast+ muscle
 </div>
 
+<hr>
+<a name="Virtual Appliance"></a>
 <h3>Use a virtual appliance</h3>
 The other option for non-linux users is to install a Virtual machine OS with all software
 pre-installed and run it from within VirtualBox on your own computer/server. This removes the need

@@ -1,4 +1,6 @@
 <div class="scrollingArea">
+{{if table!=None:}}
 {{=table}}
+{{pass}}
 </div>
 

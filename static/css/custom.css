@@ -230,7 +230,6 @@ div.monospace {
 }
 .myform input {
     width: 150px;
-
 }
 .myform select {
     width: 150px;
@@ -239,6 +238,20 @@ div.monospace {
     float: left;
     text-align: right;
     padding: 6px;
+}
+
+.iedbform{
+    background-color: #F1F1F1;
+    display: inline-block;
+    border-width:0px;
+    padding: 3px;
+}
+.iedbform input {
+    width: 200px;
+    height: 28px;
+}
+.iedbform select {
+    width: 150px;
 }
 
 .divheader {

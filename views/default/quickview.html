@@ -11,6 +11,17 @@
 <div id='resultdiv' class='span9 offset1'>
 
 </div>
+
+<div id='searchdiv' class='span9 offset1'>
+</div>
+
+</div>
+
+<div class="row">
+<div class="span2">
+
+
+</div>
 </div>
 
 <script>
@@ -29,4 +40,10 @@ jQuery('#myform').submit(function() {
 });
 </script>
 
-
+<script>
+jQuery('#findform').submit(function() {
+  ajax('{{=URL('default', 'find.load')}}',
+    ['genome','gene','description'], 'searchdiv');
+  return false;
+});
+</script>

@@ -404,6 +404,8 @@ def sequence():
     tag = request.vars.tag
     n = int(request.vars.n)
     feat, fastafmt, previous, next = getFeature(g,tag)
+    if feat==None:
+        return dict(table=None)
     seq = feat.qualifiers['translation'][0]
     preds,bcell,c = getPredictions(label,g,tag)
     table = showSequence(seq,preds)
@@ -557,6 +559,17 @@ def genomeview():
     else:
         return dict()
 
+def fastaview():
+    """Summary of fasta contents"""
+
+    f = request.args[0]
+    if len(request.args) == 1:
+        ffile = getFasta(f)
+        data = sequtils.fasta2Dataframe(ffile)
+        return dict(fastafile=f,data=data)
+    else:
+        return dict()
+
 @auth.requires_login()
 def predictions():
     """Parse results folder to show the actual data existing on file system
@@ -676,11 +689,13 @@ def quickview():
 
     defaultid = 'results_bovine'
     form = selectionForm()
-    return dict(label=defaultid,form=form)
+    searchform = findForm()
+    return dict(label=defaultid,form=form,searchform=searchform)
 
 def show():
     """Quickview all results in one - faster"""
 
+    print request.vars
     label = request.vars.label
     g = request.vars.genome
     tag = request.vars.tag
@@ -688,12 +703,12 @@ def show():
     cutoff = float(request.vars.perccutoff)
     gene = request.vars.gene
     title=None
-    if gene != None:
+    if gene != '':
         t = getTagbyGene(g,gene)
         if t != None:
             tag = t
             title = tag+' / '+gene
-    print request.vars
+
     if request.vars.perccutoff == None:
         cutoff = 0.96
     else:
@@ -858,6 +873,7 @@ def conservationAnalysisForm(defaultid='test'):
     predids = [p.identifier for p in db().select(db.predictions.ALL)]
     opts1 = [OPTION(i,value=i) for i in predids]
     genomes = [p.name for p in db().select(db.genomes.ALL)]
+    genomes.insert(0,'other')
     opts2 = [OPTION(i,value=i) for i in genomes]
     form = FORM(TABLE(
             TR(TD(LABEL('id:',_for='genome')),
@@ -1032,22 +1048,10 @@ def findForm():
     form.element('input[name=description]')['_style'] = 'height:30px;'
     return form
 
-def doSearch(genome, gene, desc):
-    """Search genbank frame by gene or descr"""
-
-    gfile = getGenome(genome)
-    g = sequtils.genbank2Dataframe(gfile, cds=True)
-    g = g.fillna('')
-    if gene == '' and desc == '':
-        df = g
-    else:
-        if gene == '': gene = '@#!x'
-        if desc == '': desc = '@#!x'
-        df = g[(g.gene.str.contains(gene, case=False)) |
-                (g['product'].str.contains(desc, case=False))]
-    df = df.drop(['type','pseudo','note','translation'],1)
-    df = df.set_index('locus_tag')
-    return df
+def search():
+    """Search page"""
+    form = findForm()
+    return dict(form=form)
 
 def find():
     """Show search results"""
@@ -1064,10 +1068,39 @@ def find():
     link = A('download results',_href=URL('default','find.csv',extension='',vars=request.vars))
     return dict(msg=msg,link=link,results=results)
 
-def search():
-    """Search page"""
-    form = findForm()
+def iedbForm():
+    dbs = ['iedb','hpv','toxin','danafarber']
+    form = SQLFORM.factory(
+              Field('database', requires=IS_IN_SET(dbs,multiple=False,zero=None),label='database'),
+              Field('antigen', 'string',label='antigen'),
+              Field('mhc_class', requires=IS_IN_SET([1,2],multiple=False,zero=None), label='mhc_class',default=2),
+              submit_button="Search",
+              _id='iedbform',_class='iedbform')
+    #form.element('input[name=gene]')['_style'] = 'height:30px;'
+    #form.element('input[name=description]')['_style'] = 'height:30px;'
+    return form
+
+def datasourcesearch():
+    """search IEDB page"""
+
+    form = iedbForm()
     return dict(form=form)
+
+def datasource():
+    """Use pepdata to fetch and search IEDB epitopes"""
+
+    print request.vars
+    db = request.vars.database
+    from pepdata import iedb
+    if db == 'iedb':
+        df = iedb.mhc.load_dataframe(mhc_class=2, human=False)
+    elif db == 'hpv':
+        df = hpv.load_mhc()
+    #df.columns = df.columns.get_level_values(1)
+
+    results = df[df.columns[5:15]][:50]
+    print results
+    return dict(results=results)
 
 @auth.requires_login()
 def test():

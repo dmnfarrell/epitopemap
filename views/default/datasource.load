@@ -1,0 +1,5 @@
+
+
+<div class="scrollingArea" style="width:100%">
+{{=XML(results.to_html(classes="sortable",na_rep='-',escape=False))}}
+</div>

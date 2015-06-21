@@ -44,6 +44,7 @@ def _():
             (T('Submit job'),False,URL('default','submit')),
             (T('Configuration'),False,URL('default','admin')),
             (T('About'),False,URL('default','about')),
+            (T('Citation'),False,URL('default','citation')),
             (T('Site admin'),False,URL('admin','default','design/%s' % app)),]
          )]
 _()
