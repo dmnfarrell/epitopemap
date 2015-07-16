@@ -26,7 +26,7 @@ jQuery('#iedbform').submit(function() {
 <script>
 jQuery('#iedbform').submit(function() {
   ajax('{{=URL('default', 'datasource.load')}}',
-    ['database','antigen','mhc_class'], 'resultdiv');
+    ['database','mhc_class','epitope'], 'resultdiv');
   return false;
 });
 </script>
