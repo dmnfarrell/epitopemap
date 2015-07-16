@@ -177,7 +177,7 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
             os.makedirs(savepath)
         else:
             removeFiles(savepath)
-        P.predictProteins(df,length=length,names=None,alleles=alleles,
+        P.predictProteins(df,length=length,names=names,alleles=alleles,
                               label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
         b = analysis.getAllBinders(savepath,method=method,n=3)
@@ -240,6 +240,7 @@ def getBinders(path,method,n=3,cutoff=0.98):
     return b
 
 def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
+    """Analyse over genome for cluster densities and other metrics"""
 
     path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
     if not os.path.exists(path):

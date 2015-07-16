@@ -146,7 +146,8 @@ def plotBCell(plot,pred,height):
     plot.line(x, y, line_color="red", line_width=2, alpha=0.6,legend='bcell')
     return
 
-def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcell=None):
+def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
+                seqdepot=None,bcell=None,exp=None):
     """Plot epitopes as parallel tracks"""
 
     from bokeh.models import Range1d,HoverTool,FactorRange,Grid,GridPlot,ColumnDataSource
@@ -171,7 +172,8 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
         plotBCell(plot, bcell, alls)
     if seqdepot != None:
         plotAnnotations(plot,seqdepot)
-
+    if exp is not None:
+        plotExp(plot, exp)
     #lists for hover data
     #we plot all rects at once
     x=[];y=[];allele=[];widths=[];clrs=[];peptide=[]
@@ -236,7 +238,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,seqdepot=None,bcel
     plot.xaxis.major_label_orientation = np.pi/4
 
     js,html = embedPlot(plot)
-    return html
+    return plot, html
 
 def plotEmpty(width=850):
     """Plot an empty plot"""
@@ -296,7 +298,7 @@ def plots():
         seq = feat['translation']
         sd = getSeqDepot(seq)['t']
 
-    figure = plotTracks(preds,tag,n=n,title=title,
+    plot,figure = plotTracks(preds,tag,n=n,title=title,
                 width=width,height=height,seqdepot=sd,bcell=bcell)
     return dict(figure=figure,preds=preds,error=False)
 
@@ -739,7 +741,7 @@ def show():
         if request.vars.annotation == 'on':
             sd = getSeqDepot(seq)['t']
 
-    figure = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
+    plot,figure = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
     #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)
     #get all results into tables
@@ -1104,17 +1106,29 @@ def datasource():
 
 @auth.requires_login()
 def test():
-    l='results_emida'
+
+    l='human' #'results_emida'
     g='MTB-H37Rv'
-    tag='Rv0011c'
+    tag='Rv3874'
+    feat, fastafmt, previous, next = getFeature(g,tag)
+    seq = feat['translation']
     preds,bcell,c = getPredictions(l,g,tag)
-    figs = scoreCorrelations(preds)
-    #corrplots = mpld3Plot(figs[0])
-    from bokeh import mpl
-    corrplots = mpl.to_bokeh(fig=figs[0])
-    form = FORM(TABLE(
-            TD(INPUT(_name='submit',_type='submit',_value='Update'))), _id="myform")
-    return dict(form=form,figure=corrplots)
+    exp = pd.read_csv(os.path.join(home, 'epitopedata/cfp10_regions.csv'))
+    exp = exp[exp.mean_sfc>0.0]
+    plot,figure = plotTracks(preds,tag,n=3,title='test',exp=exp)
+    return dict(figure=figure,exp=exp)
+
+def plotExp(plot, data):
+    x = data.pos
+    y = data.mean_sfc
+    w = 15
+    h=40
+    x = [i+w/2.0 for i in x]
+    y = y+abs(min(y))
+    y = y*(h/max(y))+3
+    #plot.line(x, y, line_color="red", line_width=3, alpha=0.6,legend='exp')
+    plot.rect(x=x, y=1, width=w, height=y, color="blue", alpha=0.3)
+    return
 
 def bokehtest():
     """Bokeh test"""
