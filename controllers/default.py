@@ -566,9 +566,10 @@ def fastaview():
 
     f = request.args[0]
     if len(request.args) == 1:
-        ffile = getFasta(f)
+        ffile,desc = getFasta(f)
+        pd.set_option('max_colwidth', 800)
         data = sequtils.fasta2Dataframe(ffile)
-        return dict(fastafile=f,data=data)
+        return dict(fastafile=f,data=data,desc=desc)
     else:
         return dict()
 
@@ -1071,15 +1072,16 @@ def find():
     return dict(msg=msg,link=link,results=results)
 
 def iedbForm():
-    dbs = ['iedb','hpv','toxin','danafarber']
+    dbs = ['iedb','hpv','imma2','hiv_frahm','tcga','tantigen']
+    types = ['mhc','tcell']
     form = SQLFORM.factory(
               Field('database', requires=IS_IN_SET(dbs,multiple=False,zero=None),label='database'),
-              Field('antigen', 'string',label='antigen'),
+              Field('type', requires=IS_IN_SET(types,multiple=False,zero=None),label='type'),
               Field('mhc_class', requires=IS_IN_SET([1,2],multiple=False,zero=None), label='mhc_class',default=2),
+              Field('epitope', 'string', label='epitope'),
               submit_button="Search",
               _id='iedbform',_class='iedbform')
-    #form.element('input[name=gene]')['_style'] = 'height:30px;'
-    #form.element('input[name=description]')['_style'] = 'height:30px;'
+
     return form
 
 def datasourcesearch():
@@ -1093,16 +1095,36 @@ def datasource():
 
     print request.vars
     db = request.vars.database
-    from pepdata import iedb
+    epitope = request.vars.epitope
+    from pepdata import iedb, hpv, imma2, hiv_frahm, tcga, tantigen
     if db == 'iedb':
-        df = iedb.mhc.load_dataframe(mhc_class=2, human=False)
+        df = iedb.mhc.load_dataframe(mhc_class=2,human=False)
+        df.columns = df.columns.get_level_values(1)
+        df = df[df.columns[5:18]]
+        #df = iedb.tcell.load_dataframe()
+        #if epitope != '':
+        #    df = df[df['Description'].str.contains(epitope)]
+        #print df
+
     elif db == 'hpv':
         df = hpv.load_mhc()
-    #df.columns = df.columns.get_level_values(1)
+        #df = hpv.load_tcell()
+    elif db == 'IMMA2':
+        df, non = imma2.load_classes()
+    elif db == 'hiv_frahm':
+        df = hiv_frahm.load_dataframe()
+    elif db == 'tcga':
+        df = tcga.load_dataframe(cancer_type='paad')
+        df = df[:50]
+    elif db == 'tantigen':
+        df = tantigen.load_mhc()
+        #df = tantigen.load_tcell()
 
-    results = df[df.columns[5:15]][:50]
-    print results
-    return dict(results=results)
+    if len(df) > 5000:
+        df = df[:5000]
+
+    print df
+    return dict(results=df)
 
 @auth.requires_login()
 def test():

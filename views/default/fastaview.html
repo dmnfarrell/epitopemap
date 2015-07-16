@@ -3,11 +3,11 @@
 
 <div class="row">
 <div class="span2">
-{{=H4(fastafile)}}
-
+{{=H3(fastafile)}}
+{{=H4(desc)}}
 </div >
 
-<div class="span10 offset0">
+<div class="span8 offset0">
 <div class="scrollingArea" style="width:100%">
 {{=XML(data.to_html(classes="genometable",na_rep='-',index=False))}}
 </div>

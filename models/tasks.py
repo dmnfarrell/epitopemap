@@ -46,9 +46,9 @@ def getFasta(name):
     """Get a fasta file from db"""
 
     query = db.sequences(db.sequences.name==name)
-    print db.sequences(db.sequences.id>0)
     f,ffile = db.sequences.file.retrieve(query.file)
-    return ffile
+    desc = query.description
+    return ffile, desc
 
 def getTagbyGene(g,gene):
     """Get the locus_tag from the gene name"""
@@ -312,7 +312,7 @@ def conservationAnalysis(label, genome, method, tag, identity, n=3,
             g = sequtils.genbank2Dataframe(gfile, cds=True)
             prot = g[g['locus_tag']==tag]
         else:
-            ffile = getFasta(genome)
+            ffile,desc = getFasta(genome)
             g = sequtils.fasta2Dataframe(ffile)
             prot = g[g['locus_tag']==tag]
 
@@ -422,6 +422,11 @@ def correlation(label, genome, method1, method2, n=1):
     res['perc_y'] = res['size_y']/res.length*100
     #print res[:20]
     return res
+
+def findEpitope():
+    """Find an epitope inside a set of seqs"""
+
+    return
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)

@@ -205,7 +205,7 @@ div.monospace {
     border-spacing: 0;
     border-width:0px 0px 0px 0px;
     border:0px;
-    max-width: 300px;
+    max-width: 500px;
     word-wrap: break-word;
 }
 .genometable th{
@@ -244,14 +244,19 @@ div.monospace {
     background-color: #F1F1F1;
     display: inline-block;
     border-width:0px;
-    padding: 3px;
+    padding: 4px;
 }
 .iedbform input {
-    width: 200px;
+    width: 180px;
     height: 28px;
 }
 .iedbform select {
     width: 150px;
+}
+.iedbform label {
+    float: left;
+    text-align: right;
+    padding: 6px;
 }
 
 .divheader {
