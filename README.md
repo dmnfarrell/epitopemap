@@ -5,7 +5,7 @@ epitopemap
 
 #### Background
 
-This web2py application is designed to allow binding predictions to be run for multiple proteins, such as a whole bacterial genome. 
+This web2py application is designed to allow binding predictions to be run for multiple proteins, such as a whole bacterial genome. The home page and help page is at http://dmnfarrell.github.io/epitopemap/
 
 #### Installation
 
@@ -34,5 +34,5 @@ sudo pip install numpy pandas matplotlib biopython bokeh mpld3
 
 #### Usage
 
-See the help pages inside the web application for details.
+See the help pages at http://dmnfarrell.github.io/epitopemap/help.html or inside the web application for details.
 
