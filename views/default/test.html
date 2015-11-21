@@ -2,7 +2,7 @@
 {{extend 'layout.html'}}
 
 <div style="float: left">
-{{=form}}
+{{=XML(exp.to_html(classes='tinytable'))}}
 </div>
 
 {{=XML(figure)}}
