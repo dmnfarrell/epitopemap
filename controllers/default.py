@@ -1022,7 +1022,7 @@ def submit():
             redirect(URL('formerror',vars={'msg':msg}))
         session.flash = 'form accepted'
         task = scheduler.queue_task('runPredictors', pvars=request.vars,
-                                    immediate=True, timeout=86400)
+                                    immediate=True, timeout=259200)
         redirect(URL('jobsubmitted', vars={'id':task.id}))
     elif form.errors:
         response.flash = 'form has errors'

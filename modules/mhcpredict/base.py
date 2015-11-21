@@ -870,7 +870,8 @@ class IEDBMHCIPredictor(Predictor):
     def getMHCIList(self):
         """Get available alleles from model_list file and
             convert to standard names"""
-        afile = os.path.join(self.path,'data/MHCI_mhcibinding20130222/consensus/model_list.txt')
+        #afile = os.path.join(self.path,'data/MHCI_mhcibinding20130222/consensus/model_list.txt')
+	afile = os.path.join(self.path,'data/MHCI_mhcibinding20130222/IEDB_recommended/model_list.txt')
         df = pd.read_csv(afile,sep='\t',names=['name','x'])
         alleles = list(df['name'])
         alleles = sorted(list(set([getStandardMHCI(i) for i in alleles])))
