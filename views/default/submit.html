@@ -2,7 +2,9 @@
 
 <body>
 <h4>Submit new binding prediction calculations.</h4>
-<p> The job will be processed in the background and when finished you can view in quick view.
+<p> The job will be processed in the background. You should periodically check long jobs
+to find when they are finished. Results for completed proteins can be viewed before the
+job is done.
 
 <div class="row">
 
@@ -17,10 +19,14 @@
 The usual method is to select one or more predictors and appropriate alleles which are
 then run at once for all the proteins in the chosen genome. For an entire proteome
 using multiple methods, it could take hours to process. Tepitope is fastest so
-if you want a quick result just pick this method. Selection of alleles should always
-be tailored to your needs or the results will not be meaningful. Some alleles are not
-available for all methods and will be ignored for those methods.
-DP and DQ alleles are netMHCIIpan only.
+if you want a quick result just pick this method.
+<u> Selection of alleles should always be tailored to your needs</u> or the results
+will not be meaningful. Don't just select all alleles in the list as there is a limit of
+30 alleles to prevent overloading the server. Some alleles are not available for all methods
+and will be ignored for those methods. DP and DQ alleles are netMHCIIpan only.
+{{=A('The Allele Frequency Net Database', _href='http://www.allelefrequencies.net/')}}
+may be useful for human allele selections.
+
 <br>
 If the genome is not in the drop down list you should go to the
 {{=A('add genome', _href=URL(r=request,f='genomes'))}}

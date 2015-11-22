@@ -136,9 +136,10 @@ def getPredictions(label,genome,tag,q=0.96):
 
 def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitope',length=11,
                  mhc1alleles=[], drballeles=[], dpqalleles=[], bcellmethod='Bepipred',
-                 iedbmethod='IEDB_recommended', **kwargs):
+                 iedbmethod='IEDB_recommended', user=None, **kwargs):
     """Run predictors and save results"""
 
+    limit = 40 #limit alleles
     applySettings()
     if names != '':
         names = names.split(',')
@@ -172,6 +173,8 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
             alleles = None
         else:
             alleles = drballeles + dpqalleles
+        if len(alleles)>limit:
+            alleles=alleles[:limit]
         savepath = os.path.join(datapath, label, genome, method)
         if not os.path.exists(savepath):
             os.makedirs(savepath)
@@ -184,8 +187,7 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
         if b is not None:
             binderfile = os.path.join(savepath, 'binders_3.csv')
             b.to_csv(binderfile)
-
-    addPredictionstoDB(label,path=os.path.join(datapath, label))
+    addPredictionstoDB(label,os.path.join(datapath, label),user)
     return dict(proteins=len(df))
 
 def removeFiles(path):
@@ -194,13 +196,20 @@ def removeFiles(path):
         os.remove(f)
     return
 
-def addPredictionstoDB(label,path):
+def addPredictionstoDB(label,path,user=''):
     """Add the prediction id to the db if not present"""
-    db.predictions.insert(identifier=label,description='',user='')
+
+    qry = (db.predictions.identifier == label)
+    rows = db(qry).select()
+    if len(rows) == 0:
+        db.predictions.insert(identifier=label,description='',user=user)
+        db.commit()
+
     return
 
 def getSeqDepot(seq):
     """Fetch seqdepot annotation for sequence"""
+
     import SeqDepot
     sd = SeqDepot.new()
     aseqid = sd.aseqIdFromSequence(seq)
@@ -213,6 +222,7 @@ def getSeqDepot(seq):
 
 def getConfig():
     """Get config file settings"""
+
     cpath = os.path.join(request.folder,'static')
     conffile = os.path.join(cpath, 'settings.conf')
     parser = ConfigParser.ConfigParser()
@@ -221,6 +231,7 @@ def getConfig():
 
 def applySettings():
     """Add binaries to path if needed"""
+
     parser,conffile = getConfig()
     paths = dict(parser.items('base'))
     for i in paths:
@@ -430,4 +441,3 @@ def findEpitope():
 
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)
-

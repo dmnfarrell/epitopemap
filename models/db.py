@@ -64,7 +64,7 @@ db.define_table('genomes',
 		Field('file','upload'))#,migrate=False)
 
 db.define_table('predictions',
-        Field('identifier','string',required=True),
+        Field('identifier','string',required=True,unique=True),
         Field('user','string',requires=IS_NOT_EMPTY()),
         Field('description','string',requires=IS_NOT_EMPTY()))
 
@@ -80,5 +80,3 @@ import numpy as np
 import pylab as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import cStringIO
-
-

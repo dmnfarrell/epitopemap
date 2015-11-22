@@ -631,13 +631,14 @@ def predictions():
     query=((db.predictions.id>0))
     default_sort_order=[db.predictions.id]
     grid = SQLFORM.grid(query=query, orderby=default_sort_order,
-                create=True, deletable=True, maxtextlength=350,
-                paginate=20,details=True, csv=False, ondelete=myondelete,
+                create=True, maxtextlength=350, #deletable=True,
+                paginate=20,details=True, csv=False, #ondelete=myondelete,
                 editable=auth.has_membership('editor_group'))
 
     return dict(results=df, grid=grid)
 
 def myondelete(table, id):
+
     form = FORM.confirm('Are you sure?')
     print form
     if form.accepted:
@@ -1007,6 +1008,8 @@ def submissionForm():
     #get all possible alleles for both MHCII methods
     drballeles = sorted(list(set(drballeles+tepitopealleles)))
     lengths = [9,11,13,15]
+    user = session.auth.user['first_name']
+
     form = FORM(DIV(
             TABLE(
             TR(TD(LABEL('current labels:',_for='genome')),
@@ -1045,7 +1048,7 @@ def submissionForm():
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
                 _multiple=True))),
             _class="smalltable"),_style='float: left'),
-            _id="myform")#, _class='myform')
+            _id="myform", hidden=dict(user=user))
 
     return form
 
@@ -1248,4 +1251,3 @@ def citation():
 def help():
     msg = T('')
     return dict(msg=msg)
-
