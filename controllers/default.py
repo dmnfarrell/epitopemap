@@ -633,6 +633,7 @@ def predictions():
     grid = SQLFORM.grid(query=query, orderby=default_sort_order,
                 create=True, maxtextlength=350, #deletable=True,
                 paginate=20,details=True, csv=False, #ondelete=myondelete,
+                deletable=auth.has_membership('editor_group'),
                 editable=auth.has_membership('editor_group'))
 
     return dict(results=df, grid=grid)
