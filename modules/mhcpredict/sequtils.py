@@ -167,15 +167,15 @@ def doLocalBlast(database, query, output=None, maxseqs=10, evalue=0.001,
     start = time.time()
     if output == None:
         output = os.path.splitext(query)[0]+'.xml'
-    print output
+    #print output
     from Bio.Blast.Applications import NcbiblastxCommandline
     cline = NcbiblastxCommandline(query=query,  cmd='blastp', max_target_seqs=maxseqs,
                                  db=database, outfmt=5, out=output,
                                  evalue=evalue, num_threads=3)
-    print cline
+    #print cline
     stdout, stderr = cline()
     end = time.time()
-    print 'BLAST done. took %s seconds' %(round(end-start,2))
+    #print 'BLAST done. took %s seconds' %(round(end-start,2))
     if compress == True:
         utilities.compress(output, remove=True)
     return
@@ -245,6 +245,7 @@ def getCDS(df):
 
 def fastaFormatfromFeature(feature):
     """Get fasta formatted sequence from a genome feature"""
+
     name = feature.qualifiers['locus_tag'][0]
     if not feature.qualifiers.has_key('translation'):
         return ''
@@ -312,7 +313,9 @@ def genbank2Dataframe(infile, cds=False, quiet=True):
     """Get genome records from a genbank file into a dataframe
       returns a dataframe with a row for each cds/entry"""
 
-    genome = SeqIO.read(infile,'genbank')
+    #genome = SeqIO.read(infile,'genbank')
+    recs = list(SeqIO.parse(infile,'genbank'))
+    genome = recs[0]
     #preprocess features
     allfeat = []
     for (item, f) in enumerate(genome.features):

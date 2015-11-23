@@ -502,8 +502,8 @@ def protein():
     label = request.args[0]
     g = request.args[1]
     tag = request.args[2]
-    n = 2
-    print g
+    n = 3
+    #print g
     if g == 'other':
         items = (None,None,'','')
     else:
