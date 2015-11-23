@@ -172,6 +172,10 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
             P.iedbmethod = bcellmethod
             alleles = None
         else:
+            if type(drballeles) is types.StringType:
+                drballeles=[drballeles]
+            if type(dpqalleles) is types.StringType:
+                dpqalleles=[dpqalleles]
             alleles = drballeles + dpqalleles
         if len(alleles)>limit:
             alleles=alleles[:limit]

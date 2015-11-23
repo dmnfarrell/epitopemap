@@ -199,11 +199,11 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
     if height==None:
         height = 130+10*alls
     yrange = Range1d(start=0, end=alls+3)
-    plot = Figure(title=title,title_text_font_size="11pt",plot_width=width, plot_height=height,
-           y_range=yrange,
-           y_axis_label='allele',
-           tools="xpan, xwheel_zoom, resize, hover, reset, save",
-           background_fill="#FAFAFA")
+    plot = Figure(title=title,title_text_font_size="11pt",plot_width=width,
+                  plot_height=height, y_range=yrange,
+                y_axis_label='allele',
+                tools="xpan, xwheel_zoom, resize, hover, reset, save",
+                background_fill="#FAFAFA")
 
     h=3
     if bcell != None:
@@ -255,8 +255,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
                                     predictor=predictor,position=position,score=score))
     plot.rect(x,y, width=widths, height=0.8,
          #x_range=Range1d(start=1, end=seqlen+l),
-         color=clrs,line_color='gray',alpha=0.7,source=source,
-         min_border_left=2,min_border_right=2)
+         color=clrs,line_color='gray',alpha=0.7,source=source)
 
     hover = plot.select(dict(type=HoverTool))
     hover.tooltips = OrderedDict([
