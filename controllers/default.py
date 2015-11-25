@@ -1047,6 +1047,8 @@ def submissionForm():
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
                 _multiple=True))),
+            TR(TD(LABEL('Use MHCII ref set:',_for='mhc2ref')),
+            TD(INPUT(_name='mhc2ref',_type='checkbox',value='off',_style="width:30px;"))),
             _class="smalltable"),_style='float: left'),
             _id="myform", hidden=dict(user=user))
 

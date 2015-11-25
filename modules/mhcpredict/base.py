@@ -24,7 +24,8 @@ import sequtils, tepitope
 from matplotlib.ticker import MaxNLocator
 
 home = os.path.expanduser("~")
-datadir = os.path.join(home, 'mhcdata')
+path = os.path.dirname(os.path.abspath(__file__)) #path to module
+datadir = os.path.join(path, 'mhcdata')
 iedbmethods = ['arbpython','comblib','consensus3','IEDB_recommended',
                'NetMHCIIpan','nn_align','smm_align','tepitope']
 iedbsettings = {'cutoff_type': 'none', 'pred_method': 'IEDB_recommended',
@@ -46,6 +47,10 @@ iedbbcellpath = '/local/iedbbcell/'
 
 def first(x):
     return x.iloc[0]
+
+def getMHCIIRef():
+    ref = pd.read_csv(os.path.join(datadir, 'hla_ref_set.class_ii.txt'))
+    return list(ref.allele)
 
 def getIEDBRequest(seq, alleles='HLA-DRB1*01:01', method='consensus3'):
     import requests
@@ -1031,4 +1036,3 @@ class BCellPredictor(Predictor):
                 fname = os.path.join(path, name+'.mpk')
                 pd.to_msgpack(fname, res)
         return
-

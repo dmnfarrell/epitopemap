@@ -135,8 +135,9 @@ def getPredictions(label,genome,tag,q=0.96):
     return preds, bcell, cutoffs
 
 def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitope',length=11,
-                 mhc1alleles=[], drballeles=[], dpqalleles=[], bcellmethod='Bepipred',
-                 iedbmethod='IEDB_recommended', user=None, **kwargs):
+                 mhc1alleles=[], drballeles=[], dpqalleles=[], mhc2ref=False,
+                 bcellmethod='Bepipred', iedbmethod='IEDB_recommended',
+                 user=None, **kwargs):
     """Run predictors and save results"""
 
     limit = 40 #limit alleles
@@ -177,6 +178,8 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
             if type(dpqalleles) is types.StringType:
                 dpqalleles=[dpqalleles]
             alleles = drballeles + dpqalleles
+            if mhc2ref == 'on':
+                alleles = base.getMHCIIRef()
         if len(alleles)>limit:
             alleles=alleles[:limit]
         savepath = os.path.join(datapath, label, genome, method)
