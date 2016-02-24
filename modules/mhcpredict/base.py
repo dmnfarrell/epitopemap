@@ -875,7 +875,7 @@ class IEDBMHCIPredictor(Predictor):
         """Get available alleles from model_list file and
             convert to standard names"""
 
-        lisfile = 'data/MHCI_mhcibinding20130222/consensus/model_list.txt'
+        listfile = 'data/MHCI_mhcibinding20130222/consensus/model_list.txt'
         afile = os.path.join(self.path, listfile)
         if not os.path.exists(listfile):
             return []
