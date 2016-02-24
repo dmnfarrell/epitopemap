@@ -52,7 +52,7 @@ auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
 
 #auth.settings.register_onaccept.append(lambda form:
-#    mail.send(to='ad...@emai.com',subject='New user registered for %s application' % (request.application),
+#    mail.send(to='..@yourmail.com',subject='New user registered for %s application' % (request.application),
 #                message="new user email is %s" % (form.vars.email)))
 
 ## Define your tables below (or better in another model file) for example
