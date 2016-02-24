@@ -24,8 +24,8 @@ import sequtils, tepitope
 from matplotlib.ticker import MaxNLocator
 
 home = os.path.expanduser("~")
-path = os.path.dirname(os.path.abspath(__file__)) #path to module
-datadir = os.path.join(path, 'mhcdata')
+datadir = os.path.join(home, 'mhcdata')
+predictors = ['tepitope','netmhciipan','iedbmhc1','iedbmhc2','bcell']
 iedbmethods = ['arbpython','comblib','consensus3','IEDB_recommended',
                'NetMHCIIpan','nn_align','smm_align','tepitope']
 iedbsettings = {'cutoff_type': 'none', 'pred_method': 'IEDB_recommended',
@@ -47,10 +47,6 @@ iedbbcellpath = '/local/iedbbcell/'
 
 def first(x):
     return x.iloc[0]
-
-def getMHCIIRef():
-    ref = pd.read_csv(os.path.join(datadir, 'hla_ref_set.class_ii.txt'))
-    return list(ref.allele)
 
 def getIEDBRequest(seq, alleles='HLA-DRB1*01:01', method='consensus3'):
     import requests
@@ -146,6 +142,8 @@ def dbscan(B=None, x=None, dist=7, minsize=4):
     return clusts
 
 def getPredictor(name='tepitope', **kwargs):
+    """Get a predictor"""
+
     if name == 'netmhciipan':
         return NetMHCIIPanPredictor(**kwargs)
     elif name == 'iedbmhc1':
@@ -156,8 +154,6 @@ def getPredictor(name='tepitope', **kwargs):
         return BCellPredictor(**kwargs)
     elif name == 'tepitope':
         return TEpitopePredictor(**kwargs)
-    elif name == 'threading':
-        return ThreadingPredictor(**kwargs)
     else:
         print 'no such predictor %s' %name
         return
@@ -536,7 +532,7 @@ class Predictor(object):
             st=time.time()
             seq = row['translation']
             name = row['locus_tag']
-            print name
+            #print name
             res = []
             for a in alleles:
                 #print a
@@ -548,6 +544,7 @@ class Predictor(object):
             if save == True:
                 fname = os.path.join(path, name+'.mpk')
                 pd.to_msgpack(fname, res)
+	print 'predictions done for %s proteins' %len(proteins)
         return
 
     def save(self, label, singlefile=True):
@@ -846,6 +843,7 @@ class IEDBMHCIPredictor(Predictor):
         return self.data
 
     def prepareData(self, rows, name):
+        """Prepare data from results"""
 
         df = pd.read_csv(StringIO.StringIO(rows),sep="\t")
         if len(df)==0:
@@ -868,6 +866,7 @@ class IEDBMHCIPredictor(Predictor):
 
     def getScoreKey(self, data):
         """Get iedbmhc1 score key from data"""
+
         m = data['method'].head(1).squeeze()
         key = self.methods[m]
         return key
@@ -875,8 +874,11 @@ class IEDBMHCIPredictor(Predictor):
     def getMHCIList(self):
         """Get available alleles from model_list file and
             convert to standard names"""
-        #afile = os.path.join(self.path,'data/MHCI_mhcibinding20130222/consensus/model_list.txt')
-	afile = os.path.join(self.path,'data/MHCI_mhcibinding20130222/IEDB_recommended/model_list.txt')
+
+        lisfile = 'data/MHCI_mhcibinding20130222/consensus/model_list.txt'
+        afile = os.path.join(self.path, listfile)
+        if not os.path.exists(listfile):
+            return []
         df = pd.read_csv(afile,sep='\t',names=['name','x'])
         alleles = list(df['name'])
         alleles = sorted(list(set([getStandardMHCI(i) for i in alleles])))
@@ -884,6 +886,7 @@ class IEDBMHCIPredictor(Predictor):
 
 class IEDBMHCIIPredictor(Predictor):
     """Using IEDB mhcii method, requires iedb-mhc2 tools"""
+
     def __init__(self, data=None):
         Predictor.__init__(self, data=data)
         self.name = 'iedbmhc2'
