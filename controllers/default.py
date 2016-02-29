@@ -56,6 +56,10 @@ def user():
     to decorate functions that need access control
     """
     auth.settings.registration_requires_approval = True
+    adminmail = ''
+    auth.settings.register_onaccept = lambda form: mail.send(to=adminmail,
+                subject='New user registered for %s application' % (request.application),
+                message="new user email is %s" % (form.vars.email))
     return dict(form=auth())
 
 def download():
@@ -145,8 +149,29 @@ def embedPlot(plot):
     print
     return js,tag
 
+def plotRegions(plot, regions=None):
+    """Plot regions of interest"""
+
+    h=27
+    y=.5+h/2.0
+    w=20
+    colors = {'negative':'#FF3333', 'positive':'#0099FF'}
+    rv0655 = {'negative':[66,77,171,198,251], 'positive':[231]}
+    rv3676 = {'negative':[197], 'positive':[42,117,204]}
+    rv0757 = {'negative':[73,175], 'positive':[125,210]}
+    rv3584 = {'negative':[72], 'positive':[43,49]}
+
+    reg = rv3584
+    for r in reg:
+        x = reg[r]
+        x = [i+w/2 for i in x]
+        plot.rect(x,y, width=w, height=h,color=colors[r],
+                  line_color='black',alpha=0.4,legend=r)
+    plot.legend.label_text_font_size = '15pt'
+    return
+
 def plotAnnotations(plot,annotation):
-    #print annotation['proscan']
+    #print annotation
     h=1.8
     y=.4+h/2.0
     if 'signalp' in annotation:
@@ -212,6 +237,9 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
         plotAnnotations(plot,seqdepot)
     if exp is not None:
         plotExp(plot, exp)
+
+    #plotRegions(plot)
+
     #lists for hover data
     #we plot all rects at once
     x=[];y=[];allele=[];widths=[];clrs=[];peptide=[]
@@ -1008,6 +1036,8 @@ def submissionForm():
     #get all possible alleles for both MHCII methods
     drballeles = sorted(list(set(drballeles+tepitopealleles)))
     lengths = [9,11,13,15]
+    presets = presetalleles.keys()
+    presets.insert(0,'')
     user = session.auth.user['first_name']
 
     form = FORM(DIV(
@@ -1039,7 +1069,7 @@ def submissionForm():
             _class="smalltable"),_style='float: left'),
             DIV(TABLE(
             TR(TD(LABEL('MHC-I alleles:',_for='alleles')),
-            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=8,_style="width:200px;",
+            TD(SELECT(*mhc1alleles,_name='mhc1alleles',value='HLA-A*01:01-10',_size=6,_style="width:200px;",
                 _multiple=True))),
             TR(TD(LABEL('MHC-II DRB:',_for='alleles')),
             TD(SELECT(*drballeles,_name='drballeles',value='HLA-DRB1*0101',_size=8,_style="width:200px;",
@@ -1047,8 +1077,8 @@ def submissionForm():
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
                 _multiple=True))),
-            TR(TD(LABEL('Use MHCII ref set:',_for='mhc2ref')),
-            TD(INPUT(_name='mhc2ref',_type='checkbox',value='off',_style="width:30px;"))),
+            TR(TD(LABEL('OR Preset:',_for='preset')),
+            TD(SELECT(*presets,_name='preset',value="",_style="width:200px;"))),
             _class="smalltable"),_style='float: left'),
             _id="myform", hidden=dict(user=user))
 

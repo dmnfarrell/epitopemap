@@ -15,16 +15,16 @@ import subprocess
 from subprocess import CalledProcessError
 import numpy as np
 import pandas as pd
-import pylab as plt
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import utilities, peptides
 import sequtils, tepitope
-from matplotlib.ticker import MaxNLocator
+#from matplotlib.ticker import MaxNLocator
 
 home = os.path.expanduser("~")
-datadir = os.path.join(home, 'mhcdata')
+path = os.path.dirname(os.path.abspath(__file__)) #path to module
+datadir = os.path.join(path, 'mhcdata')
 predictors = ['tepitope','netmhciipan','iedbmhc1','iedbmhc2','bcell']
 iedbmethods = ['arbpython','comblib','consensus3','IEDB_recommended',
                'NetMHCIIpan','nn_align','smm_align','tepitope']
@@ -42,7 +42,10 @@ iedbkeys = {'consensus3': ['Allele','Start','End','Sequence','consensus_percenti
             'netMHCIIpan_score','netMHCIIpan_percentile','Sturniolo core',
             'Sturniolo score','Sturniolo percentile','methods'],
         'NetMHCIIpan': ['Allele','Start','End','Core','Sequence','IC50']}
+
+#these paths should be set by user before calling predictors
 iedbmhc1path = '/local/iedbmhc1/'
+iedbmhc2path = '/local/iedbmhc2/'
 iedbbcellpath = '/local/iedbbcell/'
 
 def first(x):
@@ -61,6 +64,7 @@ def getIEDBRequest(seq, alleles='HLA-DRB1*01:01', method='consensus3'):
 
 def venndiagram(names,labels,ax=None):
     from matplotlib_venn import venn2,venn3
+    import pylab as plt
     f=None
     if ax==None:
         f=plt.figure(figsize=(4,4))
@@ -73,8 +77,7 @@ def venndiagram(names,labels,ax=None):
         v = venn3([set(n1), set(n2), set(n3)], set_labels=labels)
     ax.axis('off')
     #f.patch.set_visible(False)
-    ax.set_axis_off()
-    #plt.tight_layout()
+    ax.set_axis_off()    
     return f
 
 def getOverlapping(index, s, length=9, cutoff=25):
@@ -261,6 +264,7 @@ def comparePredictors(pred1, pred2,
        Input is a dataframe with sequence records"""
 
     from matplotlib_venn import venn2
+    import pylab as plt
     f = plt.figure(figsize=(10,10))
     ax = f.add_subplot(221)
 
@@ -372,7 +376,7 @@ def getDQPList(a):
 
 def getStandardMHCII(x):
     return 'HLA'+x.replace('_','*')
-
+   
 class Predictor(object):
     """Base class to handle generic predictor methods, usually these will
        wrap methods from other modules and/or call command line predictors.
@@ -544,7 +548,7 @@ class Predictor(object):
             if save == True:
                 fname = os.path.join(path, name+'.mpk')
                 pd.to_msgpack(fname, res)
-	print 'predictions done for %s proteins' %len(proteins)
+        print 'predictions done for %s proteins' %len(proteins)
         return
 
     def save(self, label, singlefile=True):
@@ -621,6 +625,8 @@ class Predictor(object):
 
     def benchmarkKnownAntigens(self, expdata=None):
         """Test ability to rank known epitiopes/binders in antigen sequences"""
+        
+        import pylab as plt
         if expdata==None:
             #expdata = pd.read_csv(os.path.join(datadir,'expdata/bovine_responder_jones.csv'))
             expdata = pd.read_csv(os.path.join(datadir,'expdata/SYF.csv'))
@@ -776,7 +782,7 @@ class NetMHCIIPanPredictor(Predictor):
     def runSequence(self, seq, length, allele):
         seqfile = createTempSeqfile(seq)
         cmd = 'netMHCIIpan -s -length %s -a %s -f %s' %(length, allele, seqfile)
-        print cmd
+        #print cmd
         temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
         rows = self.readResult(temp)
         df = pd.DataFrame(rows)
@@ -804,6 +810,7 @@ class NetMHCIIPanPredictor(Predictor):
 
     def getAlleleList(self):
         """Get available alleles"""
+        
         cmd = 'netMHCIIpan -list'
         temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
         alleles=temp.split('\n')[34:]
@@ -822,7 +829,7 @@ class IEDBMHCIPredictor(Predictor):
         self.operator = '<'
         self.rankascending = 1
         self.iedbmethod = 'IEDB_recommended'
-        self.path = iedbmhc1path
+        #self.path = iedbmhc1path
 
     def predict(self, sequence=None, peptides=None, length=11,
                    allele='HLA-A*01:01', name=''):
@@ -830,7 +837,8 @@ class IEDBMHCIPredictor(Predictor):
            Requires that the iedb MHC tools are installed locally"""
 
         seqfile = createTempSeqfile(sequence)
-        cmd = os.path.join(self.path,'src/predict_binding.py')
+        path = iedbmhc1path 
+        cmd = os.path.join(path,'src/predict_binding.py')
         cmd = cmd+' %s %s %s %s' %(self.iedbmethod,allele,length,seqfile)
         #print cmd
         try:
@@ -875,10 +883,7 @@ class IEDBMHCIPredictor(Predictor):
         """Get available alleles from model_list file and
             convert to standard names"""
 
-        listfile = 'data/MHCI_mhcibinding20130222/consensus/model_list.txt'
-        afile = os.path.join(self.path, listfile)
-        if not os.path.exists(listfile):
-            return []
+        afile = os.path.join(iedbmhc1path, 'data/MHCI_mhcibinding20130222/consensus/model_list.txt')
         df = pd.read_csv(afile,sep='\t',names=['name','x'])
         alleles = list(df['name'])
         alleles = sorted(list(set([getStandardMHCI(i) for i in alleles])))
@@ -896,7 +901,7 @@ class IEDBMHCIIPredictor(Predictor):
         self.rankascending = 1
         self.methods = ['arbpython','comblib','consensus3','IEDB_recommended',
                     'NetMHCIIpan','nn_align','smm_align','tepitope']
-        self.path = '/local/iedbmhc2/'
+        #self.path = '/local/iedbmhc2/'
 
     def prepareData(self, rows, name):
         df = pd.read_csv(StringIO.StringIO(rows),delimiter=r"\t")
@@ -918,7 +923,8 @@ class IEDBMHCIIPredictor(Predictor):
            Requires that the iedb MHC tools are installed locally"""
 
         seqfile = createTempSeqfile(sequence)
-        cmd = os.path.join(self.path,'mhc_II_binding.py')
+        path = iedbmhc2path
+        cmd = os.path.join(path,'mhc_II_binding.py')
         cmd = cmd+' %s %s %s' %(method,allele,seqfile)
         try:
             temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
