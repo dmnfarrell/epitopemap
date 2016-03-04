@@ -74,6 +74,12 @@ db.define_table('sequences',
         Field('file','upload'),
         Field('description','string'))
 
+db.define_table('allelepresets',
+        Field('name','string',required=True),
+        Field('filename'),
+        Field('file','upload'),
+        Field('description','string'))
+
 from gluon.custom_import import track_changes; track_changes(True)
 import sys, os
 import numpy as np

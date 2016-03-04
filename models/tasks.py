@@ -11,7 +11,7 @@ presetalleles = {'US caucasion class I': 'us_caucasion_mhc1.csv',
                  'US black class I': 'us_black_mhc1.csv',
                  'human class II bovine-like': 'bovine_like.csv'}
 
-def getPresetAlleles(name):
+'''def getPresetAlleles(name):
     """Get lists of preset alleles"""
 
     path = os.path.join(request.folder, 'static/preset')
@@ -19,7 +19,7 @@ def getPresetAlleles(name):
         return []
     filename = os.path.join(path, presetalleles[name])
     df = pd.read_csv(filename)
-    return list(df.allele)
+    return list(df.allele)'''
 
 def doTask():
     import time
@@ -63,6 +63,14 @@ def getFasta(name):
     f,ffile = db.sequences.file.retrieve(query.file)
     desc = query.description
     return ffile, desc
+
+def getPresetAlleles(name):
+    """Get an uploaded allele list from csv file"""
+
+    record = db.allelepresets(db.allelepresets.name==name)
+    filename = os.path.join(request.folder,'uploads', record.file)
+    df = pd.read_csv(filename)
+    return list(df.allele)
 
 def getTagbyGene(g,gene):
     """Get the locus_tag from the gene name"""
@@ -154,7 +162,7 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
                  user=None, **kwargs):
     """Run predictors and save results"""
 
-    limit = 40 #limit alleles
+    limit = 50 #limit alleles
     applySettings()
     if names != '':
         names = names.split(',')

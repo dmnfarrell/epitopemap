@@ -794,7 +794,11 @@ class NetMHCIIPanPredictor(Predictor):
         """Call netMHCIIpan command line"""
 
         #assume allele names are in standard format HLA-DRB1*0101
-        allele = allele.split('-')[1].replace('*','_')
+        try:
+            allele = allele.split('-')[1].replace('*','_')
+        except:
+            print('invalid allele')
+            return
         if peptides != None:
             res = pd.DataFrame()
             for p in peptides:
@@ -812,7 +816,11 @@ class NetMHCIIPanPredictor(Predictor):
         """Get available alleles"""
 
         cmd = 'netMHCIIpan -list'
-        temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
+        try:
+            temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
+        except:
+            print 'netmhciipan not installed?'
+            return []
         alleles=temp.split('\n')[34:]
         #print sorted(list(set([getStandardmhc1Name(i) for i in alleles])))
         return alleles
@@ -904,7 +912,7 @@ class IEDBMHCIIPredictor(Predictor):
         self.methods = ['arbpython','comblib','consensus3','IEDB_recommended',
                     'NetMHCIIpan','nn_align','smm_align','tepitope']
         #self.path = '/local/iedbmhc2/'
-        
+
     def prepareData(self, rows, name):
         df = pd.read_csv(StringIO.StringIO(rows),delimiter=r"\t")
         extracols = ['Start','End','comblib_percentile','smm_percentile','nn_percentile',

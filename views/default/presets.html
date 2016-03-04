@@ -1,0 +1,31 @@
+{{extend 'layout.html'}}
+
+<div class="row">
+
+<div class="span8">
+<h4>Add a preset list of alleles to be used for submiting jobs </h4>
+<p>You can then select this list in the submission form </p>
+
+{{=form}}
+
+</div>
+
+<div class="span4 offset0 ">
+<h5>Help</h5>
+<p>
+Lists of alleles should be uploaded in plain text csv files with one entry per row.
+The column should be headed with the label 'allele'. The current limit is 50 alleles.
+
+<h4>Naming conventions:</h4>
+
+MHC-I allele: <b>HLA-A*68:02</b><p>
+
+For MHC-II alleles we use the following format (without the colon separator):
+
+<b>HLA-DRB1*0101</b><p>
+
+See http://hla.alleles.org/nomenclature
+
+</div>
+{{=grid}}
+</div>

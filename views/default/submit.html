@@ -18,14 +18,17 @@ job is done.
 <p>
 The usual method is to select one or more predictors and appropriate alleles which are
 then run at once for all the proteins in the chosen genome. For an entire proteome
-using multiple methods, it could take hours to process. Tepitope is fastest so
+using multiple methods, it could take hours to process. Tepitope is fastest for MHC-II so
 if you want a quick result just pick this method.
 <u> Selection of alleles should always be tailored to your needs</u> or the results
-will not be meaningful. Don't just select all alleles in the list as there is a limit of
-30 alleles to prevent overloading the server. Some alleles are not available for all methods
-and will be ignored for those methods. DP and DQ alleles are netMHCIIpan only.
+will not be meaningful. There is a limit of 50 alleles to prevent overloading the server.
+Some alleles are not available for all methods and will be ignored for those methods.
+DP and DQ alleles are netMHCIIpan only.
 {{=A('The Allele Frequency Net Database', _href='http://www.allelefrequencies.net/')}}
 may be useful for human allele selections.
+<br>
+For convenience you can {{=A('upload a preset allele list', _href=URL(r=request,f='presets'))}}
+and then select it in the form to avoid having to re-select the alleles each time.
 
 <br>
 If the genome is not in the drop down list you should go to the

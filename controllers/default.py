@@ -639,6 +639,38 @@ def fastaview():
         return dict()
 
 @auth.requires_login()
+def presets():
+    """Preset alleles form"""
+
+    uploadform = FORM(
+                   TABLE(TR(TD(LABEL('Name:',_for='name')),
+                        TD(INPUT(_name='name',_type='string',_required=True))),
+                     TR(TD(LABEL('CSV file:')),TD(INPUT(_name='csvfile',_type='file'))),
+                     TR(TD(LABEL('Description:',_for='description')),
+                        TD(INPUT(_name='description',_type='string',_required=False,
+                            _style="width:400px;"))),
+                     TR(TD(),TD(INPUT(_name='submit',_type='submit',_value='Submit'))),
+                     _class="smalltable"), _id="myform")
+
+    if uploadform.accepts(request.vars,formname='upload_form'):
+		fname = request.vars.csvfile.filename
+		uploadform.vars.filename = fname
+		id = db.allelepresets.insert(name=uploadform.vars.name,
+		                    description=uploadform.vars.description,
+		                    file=uploadform.vars.csvfile,
+		                    filename=uploadform.vars.filename)
+
+    db.allelepresets.id.readable=False
+    query=((db.allelepresets.id>0))
+    default_sort_order=[db.allelepresets.id]
+    #links=[lambda row: A('browse',_href=URL('fastaview', args=row.name))]
+    grid = SQLFORM.grid(query=query,  orderby=default_sort_order,
+                create=False, deletable=True, maxtextlength=64, paginate=35,
+                details=True, csv=False, ondelete=myondelete,
+                editable=auth.has_membership('editor_group'))#,links=links)
+    return dict(grid=grid,form=uploadform)
+
+@auth.requires_login()
 def predictions():
     """Parse results folder to show the actual data existing on file system
        might not sync with the results ids."""
@@ -1036,7 +1068,8 @@ def submissionForm():
     #get all possible alleles for both MHCII methods
     drballeles = sorted(list(set(drballeles+tepitopealleles)))
     lengths = [9,11,13,15]
-    presets = presetalleles.keys()
+    #presets = presetalleles.keys()
+    presets = [p.name for p in db().select(db.allelepresets.ALL)]
     presets.insert(0,'')
     user = session.auth.user['first_name']
 
@@ -1077,7 +1110,7 @@ def submissionForm():
             TR(TD(LABEL('MHC-II DQ/P:',_for='alleles')),
             TD(SELECT(*dqpalleles,_name='dqpalleles',value='',_size=6,_style="width:200px;",
                 _multiple=True))),
-            TR(TD(LABEL('OR Preset:',_for='preset')),
+            TR(TD(LABEL('OR Use Preset:',_for='preset')),
             TD(SELECT(*presets,_name='preset',value="",_style="width:200px;"))),
             _class="smalltable"),_style='float: left'),
             _id="myform", hidden=dict(user=user))
