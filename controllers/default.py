@@ -1228,7 +1228,7 @@ def plotExp(plot, data):
 def bokehtest():
     """Bokeh test"""
 
-    from bokeh.models import Range1d, HoverTool, GridPlot
+    from bokeh.models import Range1d, HoverTool, GridPlot, ColumnDataSource
     from bokeh.plotting import Figure
     N = 100
     x = np.random.random(size=N) * 100
@@ -1252,7 +1252,7 @@ def bokehtest():
     p1 = makeplot()
     p2 = makeplot()
     p3 = makeplot()
-    p = GridPlot(children=[[p1],[p2],[p3]],title='test')
+    p = GridPlot(children=[[p1],[p2],[p3]])
     js,html = embedPlot(p)
     return dict(figure=html)
 

@@ -77,7 +77,7 @@ def venndiagram(names,labels,ax=None):
         v = venn3([set(n1), set(n2), set(n3)], set_labels=labels)
     ax.axis('off')
     #f.patch.set_visible(False)
-    ax.set_axis_off()    
+    ax.set_axis_off()
     return f
 
 def getOverlapping(index, s, length=9, cutoff=25):
@@ -376,7 +376,7 @@ def getDQPList(a):
 
 def getStandardMHCII(x):
     return 'HLA'+x.replace('_','*')
-   
+
 class Predictor(object):
     """Base class to handle generic predictor methods, usually these will
        wrap methods from other modules and/or call command line predictors.
@@ -625,7 +625,7 @@ class Predictor(object):
 
     def benchmarkKnownAntigens(self, expdata=None):
         """Test ability to rank known epitiopes/binders in antigen sequences"""
-        
+
         import pylab as plt
         if expdata==None:
             #expdata = pd.read_csv(os.path.join(datadir,'expdata/bovine_responder_jones.csv'))
@@ -810,7 +810,7 @@ class NetMHCIIPanPredictor(Predictor):
 
     def getAlleleList(self):
         """Get available alleles"""
-        
+
         cmd = 'netMHCIIpan -list'
         temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
         alleles=temp.split('\n')[34:]
@@ -837,16 +837,18 @@ class IEDBMHCIPredictor(Predictor):
            Requires that the iedb MHC tools are installed locally"""
 
         seqfile = createTempSeqfile(sequence)
-        path = iedbmhc1path 
+        path = iedbmhc1path
+        if not os.path.exists(path):
+            print 'iedb mhcI tools not found'
+            return
         cmd = os.path.join(path,'src/predict_binding.py')
         cmd = cmd+' %s %s %s %s' %(self.iedbmethod,allele,length,seqfile)
-        #print cmd
         try:
             temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash',
                 stderr=subprocess.STDOUT)
         except CalledProcessError as e:
             print e
-            return None
+            return
         self.prepareData(temp, name)
         return self.data
 
@@ -902,7 +904,7 @@ class IEDBMHCIIPredictor(Predictor):
         self.methods = ['arbpython','comblib','consensus3','IEDB_recommended',
                     'NetMHCIIpan','nn_align','smm_align','tepitope']
         #self.path = '/local/iedbmhc2/'
-
+        
     def prepareData(self, rows, name):
         df = pd.read_csv(StringIO.StringIO(rows),delimiter=r"\t")
         extracols = ['Start','End','comblib_percentile','smm_percentile','nn_percentile',
@@ -924,13 +926,16 @@ class IEDBMHCIIPredictor(Predictor):
 
         seqfile = createTempSeqfile(sequence)
         path = iedbmhc2path
+        if not os.path.exists(path):
+            print 'iedb mhcII tools not found'
+            return
         cmd = os.path.join(path,'mhc_II_binding.py')
         cmd = cmd+' %s %s %s' %(method,allele,seqfile)
         try:
             temp = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
         except:
             print 'allele %s not available?' %allele
-            return None
+            return
         self.prepareData(temp, name)
         #print self.data
         return self.data

@@ -7,17 +7,18 @@ import pandas as pd
 home = os.path.expanduser("~")
 datapath = os.path.join(request.folder,'static/results')
 
-presetalleles = {'us caucasion class I': 'us_caucasion.csv',
+presetalleles = {'US caucasion class I': 'us_caucasion_mhc1.csv',
+                 'US black class I': 'us_black_mhc1.csv',
                  'human class II bovine-like': 'bovine_like.csv'}
 
 def getPresetAlleles(name):
     """Get lists of preset alleles"""
-    
+
     path = os.path.join(request.folder, 'static/preset')
     if name not in presetalleles:
         return []
     filename = os.path.join(path, presetalleles[name])
-    df = pd.read_csv(filename)    
+    df = pd.read_csv(filename)
     return list(df.allele)
 
 def doTask():
@@ -180,28 +181,28 @@ def runPredictors(label,genome='',newlabel='',names='',fasta='',methods='tepitop
         P = base.getPredictor(method)
         if method in ['iedbmhc1']:
             alleles = mhc1alleles
-            P.iedbmethod = iedbmethod            
+            P.iedbmethod = iedbmethod
         elif method == 'bcell':
             P.iedbmethod = bcellmethod
             alleles = None
         else:
-            if preset != '':
-                alleles = getPresetAlleles(preset)
-                print alleles
-            else:    
-                if type(drballeles) is types.StringType:
-                    drballeles=[drballeles]
-                if type(dpqalleles) is types.StringType:
-                    dpqalleles=[dpqalleles]
-                alleles = drballeles + dpqalleles
-  
+            if type(drballeles) is types.StringType:
+                drballeles=[drballeles]
+            if type(dpqalleles) is types.StringType:
+                dpqalleles=[dpqalleles]
+            alleles = drballeles + dpqalleles
+        #if preset is chosen override allele lists with this
+        if preset != '':
+            alleles = getPresetAlleles(preset)
+            print alleles
+
         if len(alleles)>limit:
             alleles=alleles[:limit]
         savepath = os.path.join(datapath, label, genome, method)
         if not os.path.exists(savepath):
             os.makedirs(savepath)
         else:
-            removeFiles(savepath)          
+            removeFiles(savepath)
         P.predictProteins(df,length=length,names=names,alleles=alleles,
                               label=label,save=True,path=savepath)
         #also pre-calculate binders for n=3
