@@ -133,7 +133,7 @@ def mpld3Plot(fig, objects=None):
     return html
 
 def embedPlot(plot):
-    """Embed plot method for new versions of bokeh"""
+    """Embed plot method for older versions of bokeh"""
 
     from bokeh.resources import Resources
     from bokeh.embed import autoload_static
@@ -148,6 +148,13 @@ def embedPlot(plot):
         f.write(js)
     print
     return js,tag
+
+def newembedPlot(plot):
+    """Embed plot method for new version of bokeh (tested on 0.11)"""
+    
+    from bokeh.embed import components
+    script, div = components(plot)
+    return script, div
 
 def plotRegions(plot, regions=None):
     """Plot regions of interest"""
@@ -302,8 +309,10 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
     plot.yaxis.major_label_text_font_size = '0pt'
     plot.xaxis.major_label_orientation = np.pi/4
 
-    js,html = embedPlot(plot)
-    return plot, html
+    #js,html = embedPlot(plot)
+    script, div = newembedPlot(plot)
+    return script, div
+    #return plot, html
 
 def plotEmpty(width=850):
     """Plot an empty plot"""
@@ -363,9 +372,11 @@ def plots():
         seq = feat['translation']
         sd = getSeqDepot(seq)['t']
 
-    plot,figure = plotTracks(preds,tag,n=n,title=title,
+    script, div = plotTracks(preds,tag,n=n,title=title,
                 width=width,height=height,seqdepot=sd,bcell=bcell)
-    return dict(figure=figure,preds=preds,error=False)
+    response.files.append(URL('static','js/bokeh.min.js'))
+    response.include_files()
+    return dict(script=script,div=div,preds=preds,error=False)
 
 def scoredistplots(preds):
     """Score distribution plots"""
@@ -841,7 +852,7 @@ def show():
         if request.vars.annotation == 'on':
             sd = getSeqDepot(seq)['t']
 
-    plot,figure = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
+    script, div = plotTracks(preds,tag,n=n,title=title,width=width,seqdepot=sd,bcell=bcell)
     #distplots = scoredistplots(preds)
     summary = summaryhtml(preds)
     #get all results into tables
@@ -864,7 +875,9 @@ def show():
     found = [(m,preds[m].getLength()) for m in preds]
     info = TABLE(*found,_class='tinytable')
 
-    return dict(figure=figure,feat=feat,fastafmt=fastafmt,data=data,#distplots=distplots,
+    response.files.append(URL('static','js/bokeh.min.js'))
+    response.include_files()
+    return dict(script=script,div=div,feat=feat,fastafmt=fastafmt,data=data,
                 b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,cutoffs=cutoffs,
                 genome=g,tag=tag,label=label,info=info,path=path)
 
@@ -1286,8 +1299,9 @@ def bokehtest():
     p2 = makeplot()
     p3 = makeplot()
     p = GridPlot(children=[[p1],[p2],[p3]])
-    js,html = embedPlot(p)
-    return dict(figure=html)
+    #js,html = embedPlot(p)
+    script, div = newembedPlot(p)
+    return dict(div=div,script=script)
 
 @auth.requires_login()
 def admin():

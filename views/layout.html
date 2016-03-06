@@ -47,7 +47,7 @@
   response.files.insert(3,URL('static','css/web2py_bootstrap.css'))
   response.files.append(URL('static','css/custom.css'))
   response.files.append(URL('static','css/tabs.css'))
-  response.files.append(URL('static','css/bokeh.css'))
+  response.files.append(URL('static','css/bokeh.min.css'))
   }}
 
   {{include 'web2py_ajax.html'}}
@@ -161,6 +161,7 @@
   <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
   <script src="{{=URL('static','js/web2py_bootstrap.js')}}"></script>
   <script src="{{=URL('static','js/sorttable.js')}}"></script>
+  <script src="{{=URL('static','js/bokeh.min.js')}}"></script>
 
   {{if response.google_analytics_id:}}
   <!-- Google Analytics -->

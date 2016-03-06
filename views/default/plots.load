@@ -1,8 +1,13 @@
+<link rel="stylesheet" href="../static/css/bokeh.min.css" type="text/css" />
+
+{{=XML(script)}}
+
 {{if error==True:}}
 {{=H5('no such predictions')}}
 {{else:}}
 <div>
-{{=XML(figure)}}
+{{=XML(div)}}
 </div>
 <div style="clear:both"></div>
 {{pass}}
+

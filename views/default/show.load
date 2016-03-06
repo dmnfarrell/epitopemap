@@ -12,7 +12,8 @@
 
     <div class="tab-content">
         <div id="plot" class="tab active">
-            {{=XML(figure)}}
+            {{=XML(script)}}
+            {{=XML(div)}}
         </div>
 
         <div id="sequence" class="tab">

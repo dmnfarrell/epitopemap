@@ -1,5 +1,5 @@
 
+{{=XML(script)}}
 <div>
-{{=XML(figure)}}
+{{=XML(div)}}
 </div>
-<div style="clear:both"></div>
