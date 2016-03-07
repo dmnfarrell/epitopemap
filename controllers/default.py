@@ -132,7 +132,7 @@ def mpld3Plot(fig, objects=None):
         plugins.connect(fig, tooltip)
     return html
 
-def embedPlot(plot):
+def embedPlot_old(plot):
     """Embed plot method for older versions of bokeh"""
 
     from bokeh.resources import Resources
@@ -149,11 +149,15 @@ def embedPlot(plot):
     print
     return js,tag
 
-def newembedPlot(plot):
+def embedPlot(plot):
     """Embed plot method for new version of bokeh (tested on 0.11)"""
-    
+
     from bokeh.embed import components
     script, div = components(plot)
+    #inject the required bokeh js and css files
+    response.files.append(URL('static','css/bokeh.min.css'))
+    response.files.append(URL('static','js/bokeh.min.js'))
+    response.include_files()
     return script, div
 
 def plotRegions(plot, regions=None):
@@ -235,8 +239,8 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
                   plot_height=height, y_range=yrange,
                 y_axis_label='allele',
                 tools="xpan, xwheel_zoom, resize, hover, reset, save",
-                background_fill="#FAFAFA")
-
+                background_fill="#FAFAFA",
+                toolbar_location="below")
     h=3
     if bcell != None:
         plotBCell(plot, bcell, alls)
@@ -310,7 +314,7 @@ def plotTracks(preds,tag,n=3,title=None,width=820,height=None,
     plot.xaxis.major_label_orientation = np.pi/4
 
     #js,html = embedPlot(plot)
-    script, div = newembedPlot(plot)
+    script, div = embedPlot(plot)
     return script, div
     #return plot, html
 
@@ -374,8 +378,6 @@ def plots():
 
     script, div = plotTracks(preds,tag,n=n,title=title,
                 width=width,height=height,seqdepot=sd,bcell=bcell)
-    response.files.append(URL('static','js/bokeh.min.js'))
-    response.include_files()
     return dict(script=script,div=div,preds=preds,error=False)
 
 def scoredistplots(preds):
@@ -875,8 +877,6 @@ def show():
     found = [(m,preds[m].getLength()) for m in preds]
     info = TABLE(*found,_class='tinytable')
 
-    response.files.append(URL('static','js/bokeh.min.js'))
-    response.include_files()
     return dict(script=script,div=div,feat=feat,fastafmt=fastafmt,data=data,
                 b=b,summary=summary,shared=shared,n=n,seqtable=seqtable,cutoffs=cutoffs,
                 genome=g,tag=tag,label=label,info=info,path=path)
@@ -1300,7 +1300,7 @@ def bokehtest():
     p3 = makeplot()
     p = GridPlot(children=[[p1],[p2],[p3]])
     #js,html = embedPlot(p)
-    script, div = newembedPlot(p)
+    script, div = embedPlot(p)
     return dict(div=div,script=script)
 
 @auth.requires_login()
