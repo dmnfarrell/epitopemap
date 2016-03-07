@@ -262,13 +262,13 @@ div.monospace {
 .divheader {
 	font-style: bold;
 	font-size: 16px;
+	background-color: #F1F1F1;
 	padding: 4px;
 }
 
 .divheader h5 {
     font-size:14px;
-    font-family:monospace;
-    background-color: #A9E2F3;
+	background-color: #F1F1F1;
     padding: 4px;
 }
 
@@ -293,4 +293,3 @@ div.help-page{
   font-size: 1.2em;
   line-height: 1.48em;
 }
-

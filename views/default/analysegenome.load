@@ -2,28 +2,28 @@
 {{if res is None:}}
 {{=T('No predictions found. You need to submit the job and wait for results.')}}
 {{else:}}
+{{=H4('Report on genome wide analysis for %s, cutoff=%s, method=%s' %(genome, cutoff, method))}}
 <div class='divheader'>
-{{=T(summary)}}
+{{=DIV(T(summary),_class="divheader")}}
 </div>
-<div class="scrollingArea" style="width:100%">
+<div class="scrollingArea" style="width:98%">
 {{=T('Click on header to sort table')}}
 {{=XML(res.to_html(classes='sortable',escape=False,index=False,
 float_format=lambda x: '%2.2f' % x))}}
 </div>
 
-<div class="span4">
-<div class="scrollingArea" style="width:100%">
-{{=T('Top binders')}}
+{{=DIV(T('%s Binder Clusters found' %len(cl)),_class="divheader")}}
+<div class="scrollingArea" style="width:98%">
+
+{{=XML(cl[:1500].to_html(classes='sortable',escape=False,index=False,
+float_format=lambda x: '%2.2f' % x))}}
+</div>
+
+{{=DIV(T('Top binders'),_class="divheader")}}
+<div class="scrollingArea" style="width:98%">
+
 {{=XML(top.to_html(classes='sortable',escape=False,index=False,
 float_format=lambda x: '%2.2f' % x))}}
-</div>
-</div>
-<div class="span4">
-<div class="scrollingArea" style="width:100%">
-{{=T('Clusters')}}
-{{=XML(cl[:1000].to_html(classes='sortable',escape=False,index=False,
-float_format=lambda x: '%2.2f' % x))}}
-</div>
 </div>
 
 <div class="span6">

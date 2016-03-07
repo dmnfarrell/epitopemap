@@ -272,8 +272,10 @@ def applySettings():
 def getBinders(path,method,n=3,cutoff=0.98):
     """Re-usable method to get binders from path"""
 
-    binderfile = os.path.join(path,'binders_%s.csv' %n)
-    print binderfile
+    #round the cutoff
+    cutoff = round(cutoff,2)
+    binderfile = os.path.join(path,'binders_%s_%s.csv' %(n,cutoff))
+    #print binderfile
     if os.path.exists(binderfile):
         b = pd.read_csv(binderfile)
     else:
@@ -282,7 +284,8 @@ def getBinders(path,method,n=3,cutoff=0.98):
     return b
 
 def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
-    """Analyse over genome for cluster densities and other metrics"""
+    """Analyse over genome for cluster densities and other metrics -
+       some of this should be moved into mhcpredict library"""
 
     path = os.path.join(datapath, '%s/%s/%s' %(label,gname,method))
     if not os.path.exists(path):
@@ -304,11 +307,12 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
                             left_index=True,right_on='locus_tag')
     res['perc_binders'] = res['binders']/res.length*100
     res = res.sort('perc_binders',ascending=False)
-    clusterfile = os.path.join(path,'clusters_%s.csv' %n)
+    cutoff = round(cutoff,2)
+    clusterfile = os.path.join(path,'clusters_%s_%s.csv' %(n,cutoff))
     if os.path.exists(clusterfile):
         cl = pd.read_csv(clusterfile)
     else:
-        cl = analysis.findClusters(b, method, dist=9)
+        cl = analysis.findClusters(b, method, dist=None)
         cl.set_index('name').to_csv(clusterfile)
 
     if cl is not None:

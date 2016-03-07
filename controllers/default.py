@@ -132,6 +132,13 @@ def mpld3Plot(fig, objects=None):
         plugins.connect(fig, tooltip)
     return html
 
+def mplPlot(fig):
+    """Convert matplitlib plot to bokeh"""
+
+    from bokeh import mpl
+    plot = mpl.to_bokeh(fig)
+    return plot
+
 def embedPlot_old(plot):
     """Embed plot method for older versions of bokeh"""
 
@@ -920,14 +927,21 @@ def analysegenome():
     gname = request.vars.genome
     label = request.vars.label
     method = request.vars.method
-    n = int(request.vars.n)
-    cutoff = float(request.vars.perccutoff)
+    if request.vars.n != None:
+        n = int(request.vars.n)
+    else:
+        n = 3
+    if request.vars.perccutoff != None:
+        cutoff = float(request.vars.perccutoff)
+    else:
+        cutoff = 0.96
 
     b,res,top,cl,fig = genomeAnalysis(label, gname, method, n, cutoff)
     #plothtml = mpld3Plot(fig)
     plothtml=''
-    summary = '%s proteins with %s binders in >%s alleles' %(len(res),len(b),n)
-    return dict(res=res,top=top,cl=cl,summary=summary,plothtml=plothtml)
+    summary = 'Found %s binders in >=%s alleles from %s proteins' %(len(b),n,len(res))
+    return dict(genome=gname,method=method,cutoff=cutoff,res=res,top=top,cl=cl,
+                summary=summary, plothtml=plothtml)
 
 def compare():
     """Correlate predictions from 2 methods"""
