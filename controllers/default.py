@@ -41,6 +41,9 @@ def index():
     form = quicksearch()
     return dict(message=T('Menu'),searchform=form)
 
+def register():
+     return dict(form=auth.register())
+
 def user():
     """
     exposes:
