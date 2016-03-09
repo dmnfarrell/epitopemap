@@ -313,20 +313,27 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
         cl = pd.read_csv(clusterfile)
     else:
         cl = analysis.findClusters(b, method, dist=None)
-        cl.set_index('name').to_csv(clusterfile)
+        if len(cl) > 0:
+            cl.set_index('name').to_csv(clusterfile)
 
-    if cl is not None:
+    if len(cl) > 0:
         gc = cl.groupby('name').agg({'density':np.max,'name':np.size})
         gc.rename(columns={'name': 'clusters'}, inplace=True)
         res = res.merge(gc,left_on='locus_tag',right_index=True,how='left')
     res = res.fillna('-')
     #get binder metrics
     top = b.groupby('peptide').agg({P.scorekey:func,'allele':np.max,
-                    'name': lambda x: ','.join(list(x))}).reset_index()
-    top = top.sort(P.scorekey,ascending=P.rankascending)[:1000]
+                    'name': lambda x: ';'.join(list(x))})
+    top = top.sort(P.scorekey,ascending=P.rankascending).reset_index()
+    print len(top)
     #add protein urls to results table
     res['locus_tag'] = res['locus_tag'].apply(
-        lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],extension=''))))
+        lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],
+                                     extension=''))))
+    if len(cl)>0:
+        cl['name'] = cl['name'].apply(
+            lambda x: str(A(x, _href=URL(r=request,f='protein',args=[label,gname,x],
+                                         extension=''))))
     fig=None
     return b,res,top,cl,fig
 

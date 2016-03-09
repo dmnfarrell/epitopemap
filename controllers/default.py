@@ -181,7 +181,7 @@ def plotRegions(plot, regions=None):
     rv3676 = {'negative':[197], 'positive':[42,117,204]}
     rv0757 = {'negative':[73,175], 'positive':[125,210]}
     rv3584 = {'negative':[72], 'positive':[43,49]}
-
+    rv3390 = {'positive':[178,185]}
     reg = rv3584
     for r in reg:
         x = reg[r]
@@ -942,9 +942,11 @@ def analysegenome():
     b,res,top,cl,fig = genomeAnalysis(label, gname, method, n, cutoff)
     #plothtml = mpld3Plot(fig)
     plothtml=''
+    link = A('download binder list',_href=URL('default','analysegenome.csv',extension='',vars=request.vars))
     summary = 'Found %s binders in >=%s alleles from %s proteins' %(len(b),n,len(res))
+
     return dict(genome=gname,method=method,cutoff=cutoff,res=res,top=top,cl=cl,
-                summary=summary, plothtml=plothtml)
+                summary=summary, link=link, plothtml=plothtml)
 
 def compare():
     """Correlate predictions from 2 methods"""
@@ -1203,7 +1205,7 @@ def find():
     genome = request.vars.genome
     results = doSearch(genome, gene, desc)
     msg = 'found %s proteins' %len(results)
-    lst = list(results.index)
+    #lst = list(results.index)
     link = A('download results',_href=URL('default','find.csv',extension='',vars=request.vars))
     return dict(msg=msg,link=link,results=results)
 

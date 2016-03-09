@@ -4,7 +4,9 @@
 {{else:}}
 {{=H4('Report on genome wide analysis for %s, cutoff=%s, method=%s' %(genome, cutoff, method))}}
 <div class='divheader'>
-{{=DIV(T(summary),_class="divheader")}}
+{{=TABLE(TR(TD(B(summary)),
+TD(link)),_class="mytable"),
+}}
 </div>
 <div class="scrollingArea" style="width:98%">
 {{=T('Click on header to sort table')}}
@@ -16,13 +18,6 @@ float_format=lambda x: '%2.2f' % x))}}
 <div class="scrollingArea" style="width:98%">
 
 {{=XML(cl[:1500].to_html(classes='sortable',escape=False,index=False,
-float_format=lambda x: '%2.2f' % x))}}
-</div>
-
-{{=DIV(T('Top binders'),_class="divheader")}}
-<div class="scrollingArea" style="width:98%">
-
-{{=XML(top.to_html(classes='sortable',escape=False,index=False,
 float_format=lambda x: '%2.2f' % x))}}
 </div>
 

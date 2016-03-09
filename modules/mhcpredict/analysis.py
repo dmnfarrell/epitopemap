@@ -143,7 +143,7 @@ def findClusters(binders, method, dist=None, minsize=3):
 
     if len(C)==0:
         print 'no clusters'
-        return
+        return pd.DataFrame()
     x = pd.DataFrame(C,columns=['name','start','end','binders'])
     x['clustersize'] = (x.end-x.start)
     x['density'] = x.binders/(x.end-x.start)
@@ -284,4 +284,3 @@ def test():
 if __name__ == '__main__':
     pd.set_option('display.width', 600)
     test()
-
