@@ -948,6 +948,16 @@ def analysegenome():
     return dict(genome=gname,method=method,cutoff=cutoff,res=res,top=top,cl=cl,
                 summary=summary, link=link, plothtml=plothtml)
 
+def zip_dataframes(data, filename):
+    """Zip dataframes as csv"""
+
+    '''import cStringIO, zipfile
+    stream = cStringIO.StringIO()
+    zip_file = zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED, False)
+    for df in data:
+        zip_file.writestr(filename, df.to_csv(None, encoding='utf-8', index=False))'''
+    return
+
 def compare():
     """Correlate predictions from 2 methods"""
 

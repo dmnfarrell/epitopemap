@@ -312,7 +312,7 @@ def genomeAnalysis(label, gname, method, n=3, cutoff=0.96):
     if os.path.exists(clusterfile):
         cl = pd.read_csv(clusterfile)
     else:
-        cl = analysis.findClusters(b, method, dist=None)
+        cl = analysis.findClusters(b, method, dist=None, genome=g)
         if len(cl) > 0:
             cl.set_index('name').to_csv(clusterfile)
 
