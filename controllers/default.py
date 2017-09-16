@@ -59,7 +59,7 @@ def user():
     to decorate functions that need access control
     """
     auth.settings.registration_requires_approval = True
-    adminmail = ''
+    adminmail = 'damien.farrell@ucd.ie'
     auth.settings.register_onaccept = lambda form: mail.send(to=adminmail,
                 subject='New user registered for %s application' % (request.application),
                 message="new user email is %s" % (form.vars.email))
@@ -1305,6 +1305,8 @@ def bokehtest():
 
     from bokeh.models import Range1d, HoverTool, GridPlot, ColumnDataSource
     from bokeh.plotting import Figure
+    #from bokeh.layouts import gridplot
+
     N = 100
     x = np.random.random(size=N) * 100
     y = np.random.random(size=N) * 100

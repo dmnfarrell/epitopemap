@@ -19,7 +19,7 @@
 	      ('Configuration','admin')) }}
 
 {{for a in actions:}}
-<li><h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4></li>
+<h4>{{=A(a[0], _href=URL(r=request,f=a[1]))}}<h4>
 {{pass}}
 
 {{end}}
