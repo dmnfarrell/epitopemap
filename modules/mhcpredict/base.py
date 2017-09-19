@@ -479,7 +479,7 @@ class Predictor(object):
             g = final.groupby('core')
             final = g.agg({self.scorekey:max,'name':first,'peptide':first,'pos':first,
                             'allele':first})
-            final = final.reset_index().sort('pos')
+            final = final.reset_index().sort_values(by='pos')
             #print merged.sort('pos')
             #print final
             return final
