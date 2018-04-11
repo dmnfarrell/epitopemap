@@ -3,7 +3,7 @@ epitopemap
 
 ### A web application for visualizing mhc binding predictions
 
-**Note:** It is now recommended that you use the epitopepredict tool instead. http://dmnfarrell.github.io/epitopepredict
+**Note:** It is now recommended that you use the epitopepredict tool instead: https://github.com/dmnfarrell/epitopepredict
 
 #### Background
 
